@@ -79,6 +79,7 @@ int main(int argc, char* argv[]) {
 	if (SHOWCONSOLE?(atoi(SHOWCONSOLE)!=0):0) sys.console();
 
 	while (main_time/ps_per_clock < 2000*KILO && !Verilated::gotFinish()) {
+		//cout << "ticking \n";
 		TICK();
 	}
 
