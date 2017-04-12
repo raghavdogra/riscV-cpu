@@ -34,30 +34,30 @@ module top
   logic [3:0] data_index;
   logic [UPPER_WIDTH - 1:0] upper;
   logic [UPPER_WIDTH - 1:0] lower;
-  enum {request=2'b10, waiting=2'b00, reading=2'b01} state, next_state;
+  enum {fetchRequest=2'b10, fetchWaiting=2'b00, fetchReading=2'b01} fetchState, next_fetchState;
   
   always_comb begin
-  case (state)
-	request: begin
+  case (fetchState)
+	fetchRequest: begin
 		if ({bus_reqack,bus_respcyc} == 2'b10) begin
-                      next_state = waiting;
+                      next_fetchState = fetchWaiting;
 		end
 	end
-	waiting: begin
+	fetchWaiting: begin
 		if ({bus_reqack,bus_respcyc} == 2'bx1) begin
 			lower = bus_resp[UPPER_WIDTH - 1:0];
 			upper = bus_resp[BUS_DATA_WIDTH-1:UPPER_WIDTH];
-			next_state = reading;
+			next_fetchState = fetchReading;
 		end
 	end
-	reading: begin
+	fetchReading: begin
 		lower = bus_resp[UPPER_WIDTH - 1:0];
 		upper = bus_resp[BUS_DATA_WIDTH-1:UPPER_WIDTH];
 		if ({bus_reqack,bus_respcyc} == 2'bx0) begin
 			npc = pc + 8'h40;
 			bus_req = npc;
 			bus_reqtag = `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;	
-			next_state = request;
+			next_fetchState = fetchRequest;
 		end
 	end
   endcase
@@ -74,9 +74,9 @@ module top
     			bus_respack <= 0;
     			bus_req = pc;
 	         	bus_reqcyc <= 1;
-			state <= request;
+			fetchState <= fetchRequest;
 		end else begin
-			if (next_state == reading) begin
+			if (next_fetchState == fetchReading) begin
         			if (upper == 32'h00000000 && lower == 32'h00000000)
         				get_decoder.decode(lower, pc + data_index*4);
 				else begin
@@ -93,16 +93,12 @@ module top
 				data_index <= data_index +2;
 			end
 			pc <=npc;
-			state <=next_state;
-			bus_reqcyc <= next_state[1];
-			bus_respack <= next_state[0];
+			fetchState <=next_fetchState;
+			bus_reqcyc <= next_fetchState[1];
+			bus_respack <= next_fetchState[0];
 		end
 	end
   end 
-
-		
-	
-
 
   initial begin
     $display("Initializing top, entry point = 0x%x", entry);
