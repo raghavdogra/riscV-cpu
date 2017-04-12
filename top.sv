@@ -1,5 +1,6 @@
 `include "Sysbus.defs"
 `include "decoder.sv"
+`include "registerfile.sv"
 module top
 #(
   BUS_DATA_WIDTH = 64,
@@ -25,7 +26,7 @@ module top
   input  [BUS_TAG_WIDTH-1:0] bus_resptag
 );
   decoder get_decoder();
-
+  registerfile regfile();
  
  logic [64:0] opcode;
   logic [63:0] pc;
