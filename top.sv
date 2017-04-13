@@ -1,6 +1,7 @@
 `include "Sysbus.defs"
 `include "decoder.sv"
 `include "registerfile.sv"
+`include "executer.sv"
 module top
 #(
   BUS_DATA_WIDTH = 64,
@@ -23,12 +24,19 @@ module top
   input  bus_respcyc,
   input  bus_reqack,
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
-  input  [BUS_TAG_WIDTH-1:0] bus_resptag
+  input  [BUS_TAG_WIDTH-1:0] bus_resptag,
+  output [64:0] opcode,
+  output [64:0] pcint,
+  output [32:0] rd,rs1,rs2,
+  output [19:0] immediate
+
 );
   decoder get_decoder();
+  executer get_alu();
   registerfile regfile();
  
- logic [64:0] opcode;
+
+
   logic [63:0] pc;
   logic [63:0] npc;
   logic out_of_reset;
@@ -78,13 +86,19 @@ module top
 			fetchState <= fetchRequest;
 		end else begin
 			if (next_fetchState == fetchReading) begin
-        			if (upper == 32'h00000000 && lower == 32'h00000000)
-        				get_decoder.decode(lower, pc + data_index*4);
+        			if (upper == 32'h00000000 && lower == 32'h00000000) begin
+        				//get_decoder.decode(lower, pc + data_index*4);
+					get_decoder.decode(lower, pc + data_index*4, opcode, rd, rs1,rs2, immediate, pcint);
+					get_alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
+				end
 				else begin
-        			get_decoder.decode(lower, pc + data_index*4);
-        			get_decoder.decode(upper, pc + (data_index + 1) * 4 );
-        			end
-				
+        			//get_decoder.decode(lower, pc + data_index*4);
+				get_decoder.decode(lower, pc + data_index*4, opcode, rd, rs1,rs2, immediate, pcint);
+        			get_alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
+				//get_decoder.decode(upper, pc + (data_index + 1) * 4 );
+				 get_decoder.decode(lower, pc + (data_index+1)*4, opcode, rd, rs1,rs2, immediate, pcint);
+				 get_alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
+        			end			
 				if (upper == 32'h00000000) begin
           				 $finish;
         			end
