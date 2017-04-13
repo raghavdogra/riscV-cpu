@@ -24,19 +24,17 @@ module top
   input  bus_respcyc,
   input  bus_reqack,
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
-  input  [BUS_TAG_WIDTH-1:0] bus_resptag,
-  output [64:0] opcode,
-  output [64:0] pcint,
-  output [32:0] rd,rs1,rs2,
-  output [19:0] immediate
+  input  [BUS_TAG_WIDTH-1:0] bus_resptag
 
 );
   decoder get_decoder();
   executer alu();
   registerfile regfile();
  
-
-
+  logic signed [64:0] opcode;
+  logic signed [64:0] pcint;
+  logic [32:0] rd,rs1,rs2;
+  logic [19:0] immediate;
   logic [63:0] pc;
   logic [63:0] npc;
   logic out_of_reset;
@@ -89,6 +87,8 @@ module top
         			if (upper == 32'h00000000 && lower == 32'h00000000) begin
         				//get_decoder.decode(lower, pc + data_index*4);
 					get_decoder.decode(lower, pc + data_index*4, opcode, rd, rs1,rs2, immediate, pcint);
+					//$display("sending 0x%x", entry);
+					//$display ("%Recieved 0x:  %x   %0s     %0s,%0s,%0s", pc, lower,opcode,rd,rs1,rs2);
 					alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
 				end
 				else begin
@@ -96,7 +96,7 @@ module top
 				get_decoder.decode(lower, pc + data_index*4, opcode, rd, rs1,rs2, immediate, pcint);
         			alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
 				//get_decoder.decode(upper, pc + (data_index + 1) * 4 );
-				 get_decoder.decode(lower, pc + (data_index+1)*4, opcode, rd, rs1,rs2, immediate, pcint);
+				 get_decoder.decode(upper, pc + (data_index+1)*4, opcode, rd, rs1,rs2, immediate, pcint);
 				 alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
         			end			
 				if (upper == 32'h00000000) begin
