@@ -1,17 +1,17 @@
 `include "getreg.sv"
 module decoder();
 getreg gr_name();
-executer alu();
 
 task decode;
 input [31:0] lower;
 input [63:0] pc;
-logic [32:0] rd,rs1,rs2;
-logic [64:0] opcode;
+output [64:0] opcode;
+output [32:0] rd,rs1,rs2;
+output signed [19:0] immediate;
+output signed [64:0] pcint;
 logic signed [11:0] temp;
 logic signed [12:0] temp_addr;
 logic signed [64:0] address;
-logic signed [64:0] pcint;
 logic signed [20:0] offset;
 begin
 pcint = pc;
@@ -42,7 +42,11 @@ pcint = pc;
                         5'b01110: opcode = "rem";
                         5'b01111: opcode = "remu";
                 endcase
-                alu.execute(opcode,lower[11:7],lower[19:15],lower[24:20],0,pcint);
+//                alu.execute(opcode,lower[11:7],lower[19:15],lower[24:20],0,pcint);
+		rd = lower[11:7];
+		rs1 = lower[19:15];
+		rs2 = lower[24:20];
+		immediate = 0;
               //  $display ("%0x:  %x	%0s	%0s,%0s,%0s", pc, lower,opcode,rd,rs1,rs2);
         end else if (lower[6:0] == 7'b0010011) begin
                 gr_name.convert(lower[11:7],rd);
@@ -62,8 +66,12 @@ pcint = pc;
                         4'b0101: opcode = "srli";
                         4'b1101: opcode = "srai";
                 endcase
-                alu.execute(opcode,lower[11:7],lower[19:15],0,temp,pcint);
+  //              alu.execute(opcode,lower[11:7],lower[19:15],0,temp,pcint);
 
+		rd = lower[11:7];
+		rs1 = lower[19:15];
+		rs2 = 0;
+		immediate = temp;
               /*  if (opcode == "addi") begin
                     if (temp == 0) begin
                        opcode = "mv";
@@ -96,8 +104,11 @@ pcint = pc;
 			3'b011: opcode = "ld";
 			3'b110: opcode = "lwu";
                 endcase
-                alu.execute(opcode,lower[11:7],lower[19:15],0,temp,pcint);
-
+    //            alu.execute(opcode,lower[11:7],lower[19:15],0,temp,pcint);
+                rd = lower[11:7];
+                rs1 = lower[19:15];
+                rs2 = 0;
+                immediate = temp;
               //  $display ("%0x:  %x	%0s	%0s,%0d(%0s)", pc , lower,opcode,rd,temp,rs1);
         end else if (lower[6:0] == 7'b1100011) begin
                 gr_name.convert(lower[24:20],rs2);
@@ -125,8 +136,11 @@ pcint = pc;
                         3'b010: opcode = "sw";
                         3'b011: opcode = "sd";
                 endcase
-                alu.execute(opcode,0,lower[19:15],lower[24:20],temp,pcint);
-
+      //          alu.execute(opcode,0,lower[19:15],lower[24:20],temp,pcint);
+                rd = 0;
+                rs1 = lower[19:15];
+                rs2 = lower[24:20];
+                immediate = temp;
               //  $display ("%0x:  %x	%0s	%0s,%0d(%0s)", pc, lower,opcode,rs2,temp,rs1);
 
          end else if (lower[6:0] == 7'b0111011) begin
@@ -145,7 +159,11 @@ pcint = pc;
                         5'b01110: opcode = "remw";
                         5'b01111: opcode = "remuw";
                 endcase
-              alu.execute(opcode,lower[11:7],lower[19:15],lower[24:20],0,pcint);
+        //      alu.execute(opcode,lower[11:7],lower[19:15],lower[24:20],0,pcint);
+		rd = lower[11:7];
+		rs1 = lower[19:15];
+		rs2 = lower[24:20];
+		immediate = 0;
 
 //                $display ("%0x:  %x	%0s	%0s,%0s,%0s", pc, lower,opcode,rd,rs1,rs2);
         end else if (lower[6:0] == 7'b0011011) begin
@@ -161,8 +179,11 @@ pcint = pc;
                         4'b1101: opcode = "sraiw";
                 endcase
                 // if (opcode == "slliw" | opcode == "srliw" | opcode == "sraiw" )
-                   alu.execute(opcode,lower[11:7],lower[19:15],0,temp,pcint);
-
+          //         alu.execute(opcode,lower[11:7],lower[19:15],0,temp,pcint);
+                rd = lower[11:7];
+                rs1 = lower[19:15];
+                rs2 = 0;
+                immediate = temp;
                //        $display("%0x:  %x	%0s	%0s,%0s,0x%0x", pc, lower,opcode,rd,rs1,temp);
                // else 
                  //      $display("%0x:  %x	%0s	%0s,%0s,%0d", pc, lower,opcode,rd,rs1,temp);
@@ -202,12 +223,20 @@ pcint = pc;
                 case (lower[6:0])
                        7'b0110111: begin
                        gr_name.convert(lower[11:7],rd);
-                       alu.execute("lui",lower[11:7],0,0,lower[31:12],pcint);
+//                       alu.execute("lui",lower[11:7],0,0,lower[31:12],pcint);
+                rd = lower[11:7];
+                rs1 = 0;
+                rs2 = 0;
+                immediate = temp;
                       // $display("%0x:  %x	%0s	%0s,0x%0x",pc,lower,"lui",rd,lower[31:12]);
                        end
                        7'b0010111:  begin
                        gr_name.convert(lower[11:7],rd);
-                       alu.execute("auipc",lower[11:7],0,0,lower[31:12],pcint);
+                       //alu.execute("auipc",lower[11:7],0,0,lower[31:12],pcint);
+                	rd = lower[11:7];
+                	rs1 = 0;
+                	rs2 = 0;
+                	immediate = temp;
                       // alu.execute(opcode,lower[11:7],lower[19:15],lower[24:20],0);
                       // $display("%0x:  %x	%0s	%0s,0x%0x",pc,lower,"auipc",rd,lower[31:12]);
                        end
