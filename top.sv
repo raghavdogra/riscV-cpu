@@ -31,6 +31,7 @@ module top
   executer alu();
   registerfile regfile();
  
+  logic dataReady;
   logic signed [64:0] opcode;
   logic signed [64:0] pcint;
   logic [32:0] rd,rs1,rs2;
@@ -42,6 +43,7 @@ module top
   logic [UPPER_WIDTH - 1:0] upper;
   logic [UPPER_WIDTH - 1:0] lower;
   enum {fetchRequest=2'b10, fetchWaiting=2'b00, fetchReading=2'b01} fetchState, next_fetchState;
+  enum {Ready=1'b0, notReady=1'b1} decodeState, next_decodeState, executeState, next_executeState;
   
   always_comb begin
   case (fetchState)
@@ -49,6 +51,7 @@ module top
 		if ({bus_reqack,bus_respcyc} == 2'b10) begin
                       next_fetchState = fetchWaiting;
 		end
+		dataReady = 0;
 	end
 	fetchWaiting: begin
 		if ({bus_reqack,bus_respcyc} == 2'bx1) begin
@@ -56,6 +59,7 @@ module top
 			upper = bus_resp[BUS_DATA_WIDTH-1:UPPER_WIDTH];
 			next_fetchState = fetchReading;
 		end
+		dataReady = 0;
 	end
 	fetchReading: begin
 		lower = bus_resp[UPPER_WIDTH - 1:0];
@@ -66,6 +70,18 @@ module top
 			bus_reqtag = `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;	
 			next_fetchState = fetchRequest;
 		end
+		dataReady = 1;
+	end
+  endcase
+  case (decodeState)
+	notReady: begin
+	if(dataReady == 1'b1) begin
+		next_decodeState = Ready;
+		end
+	end
+	Ready: begin
+	if(dataReady == 1'b0)
+		next_decodeState = notReady;
 	end
   endcase
   end
@@ -81,9 +97,11 @@ module top
     			bus_respack <= 0;
     			bus_req = pc;
 	         	bus_reqcyc <= 1;
+			dataReady = 0;
 			fetchState <= fetchRequest;
+			decodeState <= notReady;
 		end else begin
-			if (next_fetchState == fetchReading) begin
+			if (next_decodeState == Ready) begin
         			if (upper == 32'h00000000 && lower == 32'h00000000) begin
         				//get_decoder.decode(lower, pc + data_index*4);
 					get_decoder.decode(lower, pc + data_index*4, opcode, rd, rs1,rs2, immediate, pcint);
@@ -111,6 +129,7 @@ module top
 			fetchState <=next_fetchState;
 			bus_reqcyc <= next_fetchState[1];
 			bus_respack <= next_fetchState[0];
+			decodeState <= next_decodeState;
 		end
 	end
   end 
