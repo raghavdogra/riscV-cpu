@@ -32,7 +32,7 @@ module top
 
 );
   decoder get_decoder();
-  executer get_alu();
+  executer alu();
   registerfile regfile();
  
 
@@ -89,15 +89,15 @@ module top
         			if (upper == 32'h00000000 && lower == 32'h00000000) begin
         				//get_decoder.decode(lower, pc + data_index*4);
 					get_decoder.decode(lower, pc + data_index*4, opcode, rd, rs1,rs2, immediate, pcint);
-					get_alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
+					alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
 				end
 				else begin
         			//get_decoder.decode(lower, pc + data_index*4);
 				get_decoder.decode(lower, pc + data_index*4, opcode, rd, rs1,rs2, immediate, pcint);
-        			get_alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
+        			alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
 				//get_decoder.decode(upper, pc + (data_index + 1) * 4 );
 				 get_decoder.decode(lower, pc + (data_index+1)*4, opcode, rd, rs1,rs2, immediate, pcint);
-				 get_alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
+				 alu.execute(opcode, rd, rs1, rs2, immediate, pcint);
         			end			
 				if (upper == 32'h00000000) begin
           				 $finish;
