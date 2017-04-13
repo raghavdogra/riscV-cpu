@@ -75,12 +75,12 @@ module top
   endcase
   case (decodeState)
 	notReady: begin
-	if(dataReady == 1'b1) begin
+	if(bus_respcyc == 1'b1) begin
 		next_decodeState = Ready;
 		end
 	end
 	Ready: begin
-	if(dataReady == 1'b0)
+	if(bus_respcyc == 1'b0)
 		next_decodeState = notReady;
 	end
   endcase
