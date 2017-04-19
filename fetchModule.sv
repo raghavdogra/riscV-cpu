@@ -24,8 +24,8 @@ module fetchMod
 
 );
 wire [63:0] pc;
-wire data_ready;
-
+wire data_ack;
+wire [31:0] instr_reg;
 
 cache
 #(
@@ -46,7 +46,9 @@ cache
         .bus_respcyc(bus_respcyc),
         .bus_resp  (bus_resp),
         .bus_resptag(bus_resptag),
-        .bus_respack(bus_respack)
+        .bus_respack(bus_respack),
+	.data_ack(data_ack),
+	.instr_reg(instr_reg)
         );
 
 
