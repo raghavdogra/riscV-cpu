@@ -29,8 +29,8 @@ output data_ack
 
 
 //logic [8:0] index [8:0];
-logic [63:0] data [8:0];
-logic [48:0] tag [8:0];
+logic [63:0] data [7:0];
+logic [48:0] tag [7:0];
 logic [63:0] cacheLineAddress;
 
 logic cache_hit;
@@ -46,8 +46,8 @@ always_comb begin
 
 	if (pc[63:15]==tag[pc[14:6]]) begin
 
-		cache_hit = 1;
-		data_ack = 1;
+		cache_hit = 0;
+		data_ack = 0;
 		instr_reg = (pc[5])?data[pc[14:6]][63:32]:data[pc[14:6]][31:0];
 	end else begin
 		data_ack = 0;
@@ -98,6 +98,10 @@ end
 
 
 always_ff @(posedge clk) begin
+        if (reset) begin
+                memoryState <= memoryIdle;
+		next_memoryState = memoryIdle;
+	end
 	if(cache_hit==0 && memoryState == memoryIdle && !reset) begin
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
                         bus_respack <= 0;
@@ -107,7 +111,7 @@ always_ff @(posedge clk) begin
 	end
 	if (next_memoryState == memoryReading) begin
         	data[cacheLineAddress[14:6]] <= cache_line;
-		tag[cacheLineAddress[14:6]] <= cache_line[63:15];
+		tag[cacheLineAddress[14:6]] <= cacheLineAddress[63:15];
 		prev_cacheLineAddress <= cacheLineAddress;
 	end
 end
