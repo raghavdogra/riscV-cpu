@@ -63,6 +63,10 @@ cache
 	end
 	else begin
 		if(data_ack == 1) begin
+			if(instr_reg == 8'h00008067) begin
+				$finish;
+			end
+			$display("Instruction Register %x",instr_reg);
 			pc = pc + 8'h20;
 		end
 	end

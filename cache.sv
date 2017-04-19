@@ -29,8 +29,8 @@ output data_ack
 
 
 //logic [8:0] index [8:0];
-logic [63:0] data [7:0];
-logic [48:0] tag [7:0];
+logic [63:0] data [511:0];
+logic [48:0] tag [511:0];
 logic [63:0] cacheLineAddress;
 
 logic cache_hit;
@@ -46,8 +46,8 @@ always_comb begin
 
 	if (pc[63:15]==tag[pc[14:6]]) begin
 
-		cache_hit = 0;
-		data_ack = 0;
+		cache_hit = 1;
+		data_ack = 1;
 		instr_reg = (pc[5])?data[pc[14:6]][63:32]:data[pc[14:6]][31:0];
 	end else begin
 		data_ack = 0;
@@ -110,9 +110,13 @@ always_ff @(posedge clk) begin
                         memoryState <= memoryRequest;
 	end
 	if (next_memoryState == memoryReading) begin
-        	data[cacheLineAddress[14:6]] <= cache_line;
-		tag[cacheLineAddress[14:6]] <= cacheLineAddress[63:15];
-		prev_cacheLineAddress <= cacheLineAddress;
+        	//if(cache_line == 64'h0000000000000000)
+		//	$finish;
+	//	else begin
+			data[cacheLineAddress[14:6]] <= cache_line;
+			tag[cacheLineAddress[14:6]] <= cacheLineAddress[63:15];
+			prev_cacheLineAddress <= cacheLineAddress;
+	//	end
 	end
 end
 
@@ -124,7 +128,11 @@ always_ff @(posedge clk) begin
         end     
 	
 end
-
-		
+initial begin
+int i;
+for (i = 0; i < 512; i = i +1) begin
+	tag[i] = 48'hffffffffffff;
+end
+end	
 endmodule
 		
