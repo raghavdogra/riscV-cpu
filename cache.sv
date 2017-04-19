@@ -1,7 +1,8 @@
 module cache 
 #(
   BUS_TAG_WIDTH = 13,
-  BUS_DATA_WIDTH = 64
+  BUS_DATA_WIDTH = 64, 
+  ALLONES = 32'hFFFFFFFF
 )
 (
   input  clk,
@@ -29,16 +30,18 @@ output data_ack
 
 
 //logic [8:0] index [8:0];
-logic [63:0] data [511:0];
+logic [511:0] data [511:0];
 logic [48:0] tag [511:0];
 logic [63:0] cacheLineAddress;
+
+
 
 logic cache_hit;
 logic [31:0] out_data;
 
 logic [63:0] cache_line;
 logic [63:0] prev_cacheLineAddress;
-
+int BO;
 enum {memoryRequest=2'b10, memoryWaiting=2'b00, memoryReading=2'b01, memoryIdle=2'b11} memoryState, next_memoryState;
 
 //logic to check whether a tag is present in the cache, if yes->cache_hit, o.w. cache_miss
@@ -48,11 +51,15 @@ always_comb begin
 
 		cache_hit = 1;
 		data_ack = 1;
-		instr_reg = (pc[5])?data[pc[14:6]][63:32]:data[pc[14:6]][31:0];
+		instr_reg = (ALLONES << pc[5:2] * 32) & data[pc[14:6]];
+		//instr_reg = (pc[5])?data[pc[14:6]][63:32]:data[pc[14:6]][31:0];
+	//	BO =  pc[5:2]; 
+		//instr_reg = data[pc[14:6]][];
 	end else begin
 		data_ack = 0;
 		cache_hit = 0;
-		instr_reg = 0;
+		
+		//instr_reg = 0;
 	end
 end
 
@@ -92,6 +99,7 @@ end
                 end
         end
 	memoryIdle: begin
+		
 	end	
   endcase
   end
@@ -108,12 +116,16 @@ always_ff @(posedge clk) begin
                         bus_req <= pc;
                         bus_reqcyc <= 1;
                         memoryState <= memoryRequest;
+			data[pc[14:6]] = 0;
 	end
 	if (next_memoryState == memoryReading) begin
         	//if(cache_line == 64'h0000000000000000)
 		//	$finish;
 	//	else begin
-			data[cacheLineAddress[14:6]] <= cache_line;
+			
+			
+			data[cacheLineAddress[14:6]] <= data[cacheLineAddress[14:6]] | cache_line << pc[5:3];
+		       //data[cacheLineAddress[14:6]][31:0] <= cache_line;
 			tag[cacheLineAddress[14:6]] <= cacheLineAddress[63:15];
 			prev_cacheLineAddress <= cacheLineAddress;
 	//	end

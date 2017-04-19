@@ -67,7 +67,7 @@ cache
 				$finish;
 			end
 			$display("Instruction Register %x",instr_reg);
-			pc = pc + 8'h20;
+			pc = pc + 4'h4;
 		end
 	end
   end
