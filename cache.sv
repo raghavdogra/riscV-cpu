@@ -2,7 +2,7 @@ module cache
 #(
   BUS_TAG_WIDTH = 13,
   BUS_DATA_WIDTH = 64, 
-  ALLONES = 32'hFFFFFFFF
+  ALLONES = 512'hFFFFFFFF
 )
 (
   input  clk,
@@ -34,7 +34,9 @@ logic [511:0] data [511:0];
 logic [48:0] tag [511:0];
 logic [63:0] cacheLineAddress;
 
-
+logic [511:0] hitCacheLine;
+logic [511:0] missCacheLine;
+logic [511:0] tempIR;
 
 logic cache_hit;
 logic [31:0] out_data;
@@ -47,11 +49,18 @@ enum {memoryRequest=2'b10, memoryWaiting=2'b00, memoryReading=2'b01, memoryIdle=
 //logic to check whether a tag is present in the cache, if yes->cache_hit, o.w. cache_miss
 always_comb begin
 
-	if (pc[63:15]==tag[pc[14:6]]) begin
+	if (pc[63:15]==tag[pc[14:6]] && memoryState == memoryIdle) begin
 
+		hitCacheLine = data[pc[14:6]];
+		tempIR = (ALLONES << (pc[5:2] * 32)) & data[pc[14:6]];
+//			$display("our expression = %x", (ALLONES << (pc[5:2] * 32)));
+//			$display("cacheLine      = %x", data[pc[14:6]]);
+//			$display("tempIR         = %x", tempIR);
+		instr_reg = tempIR >> (pc[5:2] * 32);
+//			$display("instr_reg         = %x", instr_reg);	
 		cache_hit = 1;
 		data_ack = 1;
-		instr_reg = (ALLONES << pc[5:2] * 32) & data[pc[14:6]];
+		
 		//instr_reg = (pc[5])?data[pc[14:6]][63:32]:data[pc[14:6]][31:0];
 	//	BO =  pc[5:2]; 
 		//instr_reg = data[pc[14:6]][];
@@ -93,7 +102,7 @@ end
         end
         memoryReading: begin
 		cache_line = bus_resp;
-		cacheLineAddress = prev_cacheLineAddress + 40'h40;
+		cacheLineAddress = prev_cacheLineAddress + 40'h8;
                 if ({bus_reqack,bus_respcyc} == 2'bx0) begin
                         next_memoryState = memoryIdle;
                 end
@@ -109,6 +118,7 @@ always_ff @(posedge clk) begin
         if (reset) begin
                 memoryState <= memoryIdle;
 		next_memoryState = memoryIdle;
+		missCacheLine <= 0;
 	end
 	if(cache_hit==0 && memoryState == memoryIdle && !reset) begin
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
@@ -116,17 +126,17 @@ always_ff @(posedge clk) begin
                         bus_req <= pc;
                         bus_reqcyc <= 1;
                         memoryState <= memoryRequest;
-			data[pc[14:6]] = 0;
+			missCacheLine <= 0;
 	end
 	if (next_memoryState == memoryReading) begin
         	//if(cache_line == 64'h0000000000000000)
 		//	$finish;
 	//	else begin
 			
-			
-			data[cacheLineAddress[14:6]] <= data[cacheLineAddress[14:6]] | cache_line << pc[5:3];
+			missCacheLine <= missCacheLine | cache_line << (64 * cacheLineAddress[5:3]);
+			data[cacheLineAddress[14:6]] <= data[cacheLineAddress[14:6]] | cache_line << (64* cacheLineAddress[5:3]);
 		       //data[cacheLineAddress[14:6]][31:0] <= cache_line;
-			tag[cacheLineAddress[14:6]] <= cacheLineAddress[63:15];
+			tag[pc[14:6]] <= pc[63:15];
 			prev_cacheLineAddress <= cacheLineAddress;
 	//	end
 	end
