@@ -30,8 +30,11 @@ output data_ack
 
 
 //logic [8:0] index [8:0];
-logic [511:0] data [511:0];
-logic [48:0] tag [511:0];
+logic [511:0] Set1data [511:0];
+logic [48:0] Set1tag [511:0];
+logic [511:0] Set2data [511:0];
+logic [48:0] Set2tag [511:0];
+
 logic [63:0] cacheLineAddress;
 
 logic [511:0] hitCacheLine;
@@ -49,10 +52,14 @@ enum {memoryRequest=2'b10, memoryWaiting=2'b00, memoryReading=2'b01, memoryIdle=
 //logic to check whether a tag is present in the cache, if yes->cache_hit, o.w. cache_miss
 always_comb begin
 
-	if (pc[63:15]==tag[pc[14:6]] && memoryState == memoryIdle) begin
+	if (((pc[63:15]==Set1tag[pc[14:6]]) || (pc[63:15]==Set2tag[pc[14:6]])) && memoryState == memoryIdle) begin
 
-		hitCacheLine = data[pc[14:6]];
-		tempIR = (ALLONES << (pc[5:2] * 32)) & data[pc[14:6]];
+		if (pc[63:15]==Set1tag[pc[14:6]] ) begin
+			hitCacheLine = Set1data[pc[14:6]];
+		end else begin
+			hitCacheLine = Set2data[pc[14:6]];
+		end
+		tempIR = (ALLONES << (pc[5:2] * 32)) & hitCacheLine;
 //			$display("our expression = %x", (ALLONES << (pc[5:2] * 32)));
 //			$display("cacheLine      = %x", data[pc[14:6]]);
 //			$display("tempIR         = %x", tempIR);
@@ -134,11 +141,22 @@ always_ff @(posedge clk) begin
 	//	else begin
 			
 			missCacheLine <= missCacheLine | cache_line << (64 * cacheLineAddress[5:3]);
-			data[cacheLineAddress[14:6]] <= data[cacheLineAddress[14:6]] | cache_line << (64* cacheLineAddress[5:3]);
+			//Set1data[cacheLineAddress[14:6]] <= Set1data[cacheLineAddress[14:6]] | cache_line << (64* cacheLineAddress[5:3]);
 		       //data[cacheLineAddress[14:6]][31:0] <= cache_line;
-			tag[pc[14:6]] <= pc[63:15];
+			//Set1tag[pc[14:6]] <= pc[63:15];
 			prev_cacheLineAddress <= cacheLineAddress;
 	//	end
+	end
+	if (memoryState == memoryReading && next_memoryState == memoryIdle) begin
+		if (($random()<0)) begin
+			$display("using Set 1");
+			Set1data[pc[14:6]] <= missCacheLine;
+			Set1tag[pc[14:6]] <= pc[63:15];
+		end else begin
+			$display("using Set 2");
+			Set2data[pc[14:6]] <= missCacheLine;
+			Set2tag[pc[14:6]] <= pc[63:15];
+		end
 	end
 end
 
@@ -153,7 +171,8 @@ end
 initial begin
 int i;
 for (i = 0; i < 512; i = i +1) begin
-	tag[i] = 48'hffffffffffff;
+	Set1tag[i] = 48'hdeadbeefdead;
+	Set2tag[i] = 48'hbeefdeadbeef;
 end
 end	
 endmodule
