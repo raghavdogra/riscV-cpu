@@ -30,11 +30,11 @@ always_ff @(posedge clk) begin
 	else if (instr_reg == 8'hFF) begin
 	end
 	else begin
-		opcode = "null";
-		rs1 = 0;
-		rs2 = 0;
-		rd = 0;
-		immediate = 0;
+		//opcode = "null";
+		//rs1 = 0;
+		//rs2 = 0;
+		//rd = 0;
+		//immediate = 0;
 		 if(instr_reg == 8'h00) begin
                 	//i_execute.printRegister;
 			//$finish;

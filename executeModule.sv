@@ -52,8 +52,6 @@ getreg gr_name();
 			regfile.gpr[rd] = rs1 & rs2;
 			end
 		"addi": begin
-			//$display("%d, %d, %d",rd, rs1, immediate );
-			$display ("%0d  %d      %0d",rd,rs1,immediate);
 			regfile.gpr[rd] = rs1 + immediate;
 			end
 		"addiw": begin
