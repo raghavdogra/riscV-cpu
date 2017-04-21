@@ -25,9 +25,9 @@ module fetchMod
   input  branch,          // Memory Module
   output [31:0] instr_reg,
   output [63:0] pc,      // Cache
-  output [63:0] ifid_npc      // Decode
+  output [63:0] ifid_npc,      // Decode
+  output data_ack
 );
-wire data_ack;
 
 cache
 #(

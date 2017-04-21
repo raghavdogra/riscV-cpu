@@ -35,6 +35,7 @@ registerfile regfile();
 // Fetch Module Wires
 
 wire [31:0] instr_reg;
+wire data_ack;
 wire [63:0] pc;
 wire [63:0] ifid_npc;
 wire [63:0] target_pc;
@@ -64,7 +65,8 @@ fetchMod
 	.pc(pc),
 	.ifid_npc(ifid_npc),
 	.target_pc(target_pc),
-	.branch(branch)
+	.branch(branch),
+	.data_ack(data_ack)
 	);
 
 wire [63:0] idex_npc;
@@ -84,7 +86,8 @@ decodeMod
 	.rs1(rs1),
 	.rs2(rs2),
 	.rd(rd),
-	.immediate(immediate)
+	.immediate(immediate),
+	.data_ack(data_ack)
 //	.pcint(pcint)
 	);
 executeMod
@@ -99,7 +102,8 @@ i_execute
     .immediate(immediate),
     .idex_npc(idex_npc),
     .target_pc(target_pc),
-    .branch(branch)
+    .branch(branch),
+    .data_ack(data_ack)
 );
 
 

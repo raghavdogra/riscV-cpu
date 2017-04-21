@@ -9,8 +9,9 @@ output [64:0] opcode,
 output signed [63:0] rs1,
 output signed [63:0] rs2,
 output signed [5:0] rd,
-output signed [19:0] immediate
+output signed [19:0] immediate,
 //output signed [64:0] pcint
+input data_ack
 );
 
 logic signed [11:0] temp;
@@ -27,7 +28,7 @@ always_ff @(posedge clk) begin
 		immediate = 0;
 	//	pcint = 0;
 	end
-	else if (instr_reg == 8'hFF) begin
+	else if (data_ack == 0) begin
 	end
 	else begin
 		//opcode = "null";

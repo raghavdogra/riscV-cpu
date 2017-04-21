@@ -12,7 +12,8 @@ module executeMod
     input signed [19:0] immediate,
     input [64:0] idex_npc,
     output [63:0] target_pc,
-    output branch
+    output branch,
+    input data_ack
 );
 
 getreg gr_name();
@@ -32,6 +33,8 @@ getreg gr_name();
      regfile.gpr[0] = 0; 
     //  regfile.gpr[rd] = immediate;
 	//$display("%0s", opcode);
+	if(data_ack == 0) begin 
+	end else begin
 	case(opcode)
 		"add": begin
 			regfile.gpr[rd] = rs1 + rs2;
@@ -269,6 +272,7 @@ getreg gr_name();
 //			$display("not add or mv");
 //		end
 	endcase
+     end
    //    for (int i=0; i<=31; i++) begin
      //   $display ("%0d",regfile.gpr[i] );
      //  end 
