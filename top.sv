@@ -1,5 +1,7 @@
 `include "Sysbus.defs"
 `include "fetchModule.sv"
+`include "decodeModule.sv"
+`include "registerfile.sv"
 module top
 #(
   BUS_DATA_WIDTH = 64,
@@ -25,6 +27,15 @@ module top
 
 );
 
+registerfile regfile();
+
+
+
+// Fetch Module Wires
+
+wire [31:0] instr_reg;
+wire [63:0] pc;
+wire signed [64:0] pcint;
 fetchMod
 #(
 		.BUS_DATA_WIDTH(64),
@@ -44,9 +55,23 @@ fetchMod
 	.bus_respcyc(bus_respcyc),
 	.bus_resp  (bus_resp),
 	.bus_resptag(bus_resptag),
-	.bus_respack(bus_respack)
+	.bus_respack(bus_respack),
+	.instr_reg(instr_reg),
+	.pc(pc)
 	);
-
+decodeMod
+	i_decode (
+	.clk(clk),
+	.reset(reset),
+	.instr_reg(instr_reg),
+	.pc(pc),
+	.opcode(opcode),
+	.rs1(rs1),
+	.rs2(rs2),
+	.rd(rd),
+	.immediate(immediate),
+	.pcint(pcint)
+	);
 
 
   initial begin

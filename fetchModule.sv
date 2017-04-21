@@ -20,12 +20,11 @@ module fetchMod
   input  bus_respcyc,
   input  bus_reqack,
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
-  input  [BUS_TAG_WIDTH-1:0] bus_resptag
-
+  input  [BUS_TAG_WIDTH-1:0] bus_resptag,
+  output [31:0] instr_reg,
+  output [63:0] pc
 );
-wire [63:0] pc;
 wire data_ack;
-wire [31:0] instr_reg;
 
 cache
 #(
@@ -63,7 +62,7 @@ cache
 	end
 	else begin
 		if(data_ack == 1) begin
-			if(instr_reg == 8'h00000000) begin
+        		if(instr_reg == 8'h00008067) begin
 				$finish;
 			end
 			$display("Instruction Register %x",instr_reg);
