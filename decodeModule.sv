@@ -27,12 +27,19 @@ always_ff @(posedge clk) begin
 		immediate = 0;
 	//	pcint = 0;
 	end
+	else if (instr_reg == 8'hFF) begin
+	end
 	else begin
+		opcode = "null";
+		rs1 = 0;
+		rs2 = 0;
+		rd = 0;
+		immediate = 0;
 		 if(instr_reg == 8'h00) begin
                 	//i_execute.printRegister;
 			//$finish;
         	end;
-
+		
 	//	pcint = pc;
          	if (instr_reg[6:0] == 7'b0110011) begin
                 	case({instr_reg[30], instr_reg[25], instr_reg[14:12]})
@@ -180,11 +187,12 @@ always_ff @(posedge clk) begin
                        		//	address = pcint + offset;
                        		end
                        		7'b1100111: begin
+					opcode = "retur";
                            		temp = instr_reg[31:20];
                        		end
              		endcase
         	end
-//	$display("%b, %b, %d, %d, %d", opcode,instr_reg, rs1, rs2, immediate);
+	$display("%s, %b, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
      end
   end
 endmodule

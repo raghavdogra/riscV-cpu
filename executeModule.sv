@@ -7,8 +7,8 @@ module executeMod
     input reset,
     input [64:0] opcode,
     input [5:0] rd,
-    input signed [64:0] rs1,
-    input signed [64:0] rs2,
+    input signed [63:0] rs1,
+    input signed [63:0] rs2,
     input signed [19:0] immediate,
     input [64:0] idex_npc,
     output [63:0] target_pc,
@@ -52,6 +52,8 @@ getreg gr_name();
 			regfile.gpr[rd] = rs1 & rs2;
 			end
 		"addi": begin
+			//$display("%d, %d, %d",rd, rs1, immediate );
+			$display ("%0d  %d      %0d",rd,rs1,immediate);
 			regfile.gpr[rd] = rs1 + immediate;
 			end
 		"addiw": begin

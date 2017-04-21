@@ -73,6 +73,8 @@ cache
 			$display("Instruction Register %x",instr_reg);
 			pc = pc + 4'h4;
 		end
+		else
+			instr_reg = 8'hFF;
 	end
   end
 endmodule
