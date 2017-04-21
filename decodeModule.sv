@@ -3,13 +3,14 @@ module decodeMod
 input clk,
 input reset,
 input [31:0] instr_reg,
-input [63:0] pc,
+input [63:0] ifid_npc,
+output [63:0] idex_npc,
 output [64:0] opcode,
 output signed [63:0] rs1,
 output signed [63:0] rs2,
-output signed [63:0] rd,
-output signed [19:0] immediate,
-output signed [64:0] pcint
+output signed [5:0] rd,
+output signed [19:0] immediate
+//output signed [64:0] pcint
 );
 
 logic signed [11:0] temp;
@@ -24,10 +25,15 @@ always_ff @(posedge clk) begin
 		rs2 = 0;
 		rd = 0;
 		immediate = 0;
-		pcint = 0;
+	//	pcint = 0;
 	end
 	else begin
-		pcint = pc;
+		 if(instr_reg == 8'h00) begin
+                	//i_execute.printRegister;
+			//$finish;
+        	end;
+
+	//	pcint = pc;
          	if (instr_reg[6:0] == 7'b0110011) begin
                 	case({instr_reg[30], instr_reg[25], instr_reg[14:12]})
                         	5'b00000: opcode = "add";
@@ -49,7 +55,7 @@ always_ff @(posedge clk) begin
                         	5'b01110: opcode = "rem";
                         	5'b01111: opcode = "remu";
                 	endcase
-			rd =regfile.gpr[instr_reg[11:7]];
+			rd =instr_reg[11:7];
 			rs1 = regfile.gpr[instr_reg[19:15]];
 			rs2 = regfile.gpr[instr_reg[24:20]];
 			immediate = 0;
@@ -70,7 +76,7 @@ always_ff @(posedge clk) begin
                         	4'b1101: opcode = "srai";
                 	endcase
 
-			rd = regfile.gpr[instr_reg[11:7]];
+			rd = instr_reg[11:7];
 			rs1 = regfile.gpr[instr_reg[19:15]];
 			rs2 = 0;
 			immediate = temp;
@@ -85,13 +91,13 @@ always_ff @(posedge clk) begin
 				3'b011: opcode = "ld";
 				3'b110: opcode = "lwu";
                 	endcase
-                	rd = regfile.gpr[instr_reg[11:7]];
+                	rd = instr_reg[11:7];
                 	rs1 = regfile.gpr[instr_reg[19:15]];
                 	rs2 = 0;
                	 	immediate = temp;
        		end else if (instr_reg[6:0] == 7'b1100011) begin
                 	temp_addr = {instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0}; 
-                	address = pcint + temp_addr;
+                	//address = pcint + temp_addr;
                 	case (instr_reg[14:12])
                         	3'b000: opcode = "beq";
                         	3'b001: opcode = "bne";
@@ -125,7 +131,7 @@ always_ff @(posedge clk) begin
                         	5'b01110: opcode = "remw";
                         	5'b01111: opcode = "remuw";
                	 	endcase
-			rd = regfile.gpr[instr_reg[11:7]];
+			rd = instr_reg[11:7];
 			rs1 = regfile.gpr[instr_reg[19:15]];
 			rs2 = regfile.gpr[instr_reg[24:20]];
 			immediate = 0;
@@ -139,7 +145,7 @@ always_ff @(posedge clk) begin
                         	4'b0101: opcode = "srliw";
                         	4'b1101: opcode = "sraiw";
                 	endcase
-                	rd = regfile.gpr[instr_reg[11:7]];
+                	rd = instr_reg[11:7];
                 	rs1 = regfile.gpr[instr_reg[19:15]];
                 	rs2 = 0;
                 	immediate = temp;
@@ -158,26 +164,27 @@ always_ff @(posedge clk) begin
         	end else begin
                 	case (instr_reg[6:0])
                        		7'b0110111: begin
-                			rd = regfile.gpr[instr_reg[11:7]];
+                			rd = instr_reg[11:7];
              				rs1 = 0;
                 			rs2 = 0;
                 			immediate = temp;
                        		end
                        		7'b0010111:  begin
-                			rd = regfile.gpr[instr_reg[11:7]];
+                			rd = instr_reg[11:7];
                 			rs1 = 0;
                 			rs2 = 0;
                 			immediate = temp;
                        		end
                        		7'b1101111: begin
                        			offset[20:0] = {instr_reg[31],instr_reg[19:12],instr_reg[20],instr_reg[30:21],1'b0};
-                       			address = pcint + offset;
+                       		//	address = pcint + offset;
                        		end
                        		7'b1100111: begin
                            		temp = instr_reg[31:20];
                        		end
              		endcase
         	end
+//	$display("%b, %b, %d, %d, %d", opcode,instr_reg, rs1, rs2, immediate);
      end
   end
 endmodule

@@ -2,6 +2,7 @@
 `include "fetchModule.sv"
 `include "decodeModule.sv"
 `include "registerfile.sv"
+`include "executeModule.sv"
 module top
 #(
   BUS_DATA_WIDTH = 64,
@@ -35,6 +36,9 @@ registerfile regfile();
 
 wire [31:0] instr_reg;
 wire [63:0] pc;
+wire [63:0] ifid_npc;
+wire [63:0] target_pc;
+wire branch;
 wire signed [64:0] pcint;
 fetchMod
 #(
@@ -57,21 +61,46 @@ fetchMod
 	.bus_resptag(bus_resptag),
 	.bus_respack(bus_respack),
 	.instr_reg(instr_reg),
-	.pc(pc)
+	.pc(pc),
+	.ifid_npc(ifid_npc),
+	.target_pc(target_pc),
+	.branch(branch)
 	);
+
+wire [63:0] idex_npc;
+wire [63:0] rs1;
+wire [63:0] rs2;
+wire [5:0] rd;
+wire [19:0] immediate;
 decodeMod
 	i_decode (
 	.clk(clk),
 	.reset(reset),
 	.instr_reg(instr_reg),
-	.pc(pc),
+	.ifid_npc(ifid_npc),
+	.idex_npc(idex_npc),
 	.opcode(opcode),
 	.rs1(rs1),
 	.rs2(rs2),
 	.rd(rd),
-	.immediate(immediate),
-	.pcint(pcint)
+	.immediate(immediate)
+//	.pcint(pcint)
 	);
+executeMod
+i_execute
+(   
+    .clk(clk),
+    .reset(reset),
+    .opcode(opcode),
+    .rd(rd),
+    .rs1(rs1),
+    .rs2(rs2),
+    .immediate(immediate),
+    .idex_npc(idex_npc),
+    .target_pc(target_pc),
+    .branch(branch)
+);
+
 
 
   initial begin

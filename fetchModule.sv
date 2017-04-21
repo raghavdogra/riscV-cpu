@@ -21,8 +21,11 @@ module fetchMod
   input  bus_reqack,
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
   input  [BUS_TAG_WIDTH-1:0] bus_resptag,
+  input  [63:0] target_pc, // Memory Module
+  input  branch,          // Memory Module
   output [31:0] instr_reg,
-  output [63:0] pc
+  output [63:0] pc,      // Cache
+  output [63:0] ifid_npc      // Decode
 );
 wire data_ack;
 
@@ -56,13 +59,15 @@ cache
 	pc = entry;
   end
 
+
   always_ff @ (posedge clk) begin
 	if(reset) begin
 		pc = entry;
 	end
 	else begin
 		if(data_ack == 1) begin
-        		if(instr_reg == 8'h00008067) begin
+        		if(instr_reg == 8'h00) begin
+				//i_execute.printRegister;
 				$finish;
 			end
 			$display("Instruction Register %x",instr_reg);
