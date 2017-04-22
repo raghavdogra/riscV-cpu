@@ -53,16 +53,19 @@ cache
 	.instr_reg(instr_reg)
         );
 
-
+logic [63:0] npc;
 
  initial begin
 	pc = entry;
   end
 
+always_comb begin
+    npc = pc + 4'h4;
+end
 
   always_ff @ (posedge clk) begin
 	if(reset) begin
-		pc = entry;
+		pc <= entry;
 	end
 	else begin
 		if(data_ack == 1) begin
@@ -71,10 +74,10 @@ cache
 				$finish;
 			end
 			$display("Instruction Register %x",instr_reg);
-			pc = pc + 4'h4;
+			pc <= npc;
 		end
-		else
-			instr_reg = 8'hFF;
+	//	else
+	//		instr_reg = 8'hFF;
 	end
   end
 endmodule

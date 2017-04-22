@@ -37,11 +37,11 @@ registerfile regfile();
 // Fetch Module Wires
 
 wire [31:0] instr_reg;
-wire data_ack;
+wire IFID_ready;
 wire [63:0] pc;
-wire [63:0] ifid_npc;
-wire [63:0] target_pc;
-wire branch;
+wire [63:0] IFID_npc;
+wire [63:0] EXIF_targetpc;
+wire EXIF_branch;
 wire signed [64:0] pcint;
 fetchMod
 #(
@@ -49,11 +49,23 @@ fetchMod
 		.BUS_TAG_WIDTH(13)
 )
 	i_fetch (
+//inputs
 	.clk       (clk),
 	.reset     (reset),
                     
 	.entry     (entry),
-	.stackptr (stackptr),                    
+	.stackptr (stackptr),
+	
+	.EXIF_targetpc(EXIF_targetpc),
+	.EXIF_branch(EXIF_branch),
+
+//outputs
+	.pc(pc),
+	.data_ack(IFID_ready),
+	.instr_reg(instr_reg),
+	.IFID_npc(IFID_npc),
+	
+//bus interface
 	.bus_reqcyc(bus_reqcyc),
 	.bus_req   (bus_req),
 	.bus_reqtag(bus_reqtag),
@@ -62,83 +74,92 @@ fetchMod
 	.bus_respcyc(bus_respcyc),
 	.bus_resp  (bus_resp),
 	.bus_resptag(bus_resptag),
-	.bus_respack(bus_respack),
-	.instr_reg(instr_reg),
-	.pc(pc),
-	.ifid_npc(ifid_npc),
-	.target_pc(target_pc),
-	.branch(branch),
-	.data_ack(data_ack)
+	.bus_respack(bus_respack)
 	);
 
-wire [63:0] idex_npc;
-wire [63:0] rs1;
-wire [63:0] rs2;
-wire [5:0] rd;
-wire [19:0] immediate;
-wire [63:0] opcode;
+wire [63:0] IDEX_npc;
+wire [63:0] IDEX_rs1;
+wire [63:0] IDEX_rs2;
+wire [5:0] IDEX_rd;
+wire [19:0] IDEX_immediate;
+wire [63:0] IDEX_opcode;
+wire IDEX_ready;
+
 decodeMod
 	i_decode (
+//inputs
 	.clk(clk),
 	.reset(reset),
 	.instr_reg(instr_reg),
-	.ifid_npc(ifid_npc),
-	.idex_npc(idex_npc),
-	.opcode(opcode),
-	.rs1(rs1),
-	.rs2(rs2),
-	.rd(rd),
-	.immediate(immediate),
-	.data_ack(data_ack)
+	.IFID_npc(IFID_npc),
+	.IFID_ready(IFID_ready),
+	
+//output
+	.IDEX_ready(IDEX_ready),
+	.IDEX_npc(IDEX_npc),
+	.opcode(IDEX_opcode),
+	.rs1(IDEX_rs1),
+	.rs2(IDEX_rs2),
+	.rd(IDEX_rd),
+	.immediate(IDEX_immediate)
 //	.pcint(pcint)
 	);
-
-wire [63:0]exmm_aluresult;
-wire [5:0] dest_reg;
+wire [63:0]EXMEM_aluresult;
+wire [5:0] EXMEM_rd;
+wire EXMEM_ready;
 wire mem_active;
 wire load;
 
 executeMod
 i_execute
 (   
+//inputs
     .clk(clk),
     .reset(reset),
-    .opcode(opcode),
-    .rd(rd),
-    .rs1(rs1),
-    .rs2(rs2),
-    .immediate(immediate),
-    .idex_npc(idex_npc),
-    .target_pc(target_pc),
-    .branch(branch),
-    .data_ack(data_ack),
-    .dest_reg(dest_reg),
-    .exmm_aluresult(exmm_aluresult),
+    .opcode(IDEX_opcode),
+    .rd(IDEX_rd),
+    .rs1(IDEX_rs1),
+    .rs2(IDEX_rs2),
+    .immediate(IDEX_immediate),
+    .IDEX_npc(IDEX_npc),
+    .IDEX_ready(IDEX_ready),
+    
+
+//outputs
+    .EXMEM_ready(EXMEM_ready),
     .mem_active(mem_active),
-    .load(load)
+    .load(load),
+    .dest_reg(EXMEM_rd),
+    .exmm_aluresult(EXMEM_aluresult),
+    .target_pc(EXIF_targetpc),
+    .branch(EXIF_branch)
 );
 
 
-    wire [63:0] memwb_aluresult;
-    wire [63:0] memwb_loadeddata;
-    wire [5:0] memwb_rd;
+    wire [63:0] MEMWB_aluresult;
+    wire [63:0] MEMWB_loadeddata;
+    wire [5:0] MEMWB_rd;
+    wire MEMWB_ready;
 
 memoryMod
 i_memory
 (
+//inputs
     .clk(clk),
     .reset(reset),
     .mem_active(mem_active),
     .load(load),
-    .exmem_aluresult(exmm_aluresult),
-    .exmem_rd(dest_reg),
-    .exmem_rs2(rs2),
-    .target_pc(target_pc),
-    .data_ack(data_ack),
+    .exmem_aluresult(EXMEM_aluresult),
+    .exmem_rd(EXMEM_rd),
+    //.exmem_rs2(rs2),
+    .target_pc(EXIM_targetpc),
+    .EXMEM_ready(EXMEM_ready),
+
 //outputs
-    .memwb_aluresult(memwb_aluresult),
-    .memwb_loadeddata(memwb_loadeddata),
-    .memwb_rd(memwb_rd)
+    .memwb_aluresult(MEMWB_aluresult),
+    .memwb_loadeddata(MEMWB_loadeddata),
+    .memwb_rd(MEMWB_rd),
+    .MEMWB_ready(MEMWB_ready)
 );
 
 writebackMod
@@ -146,10 +167,14 @@ i_writeback
 (
 	.clk(clk),
 	.reset(reset),
-	.dest_reg(memwb_rd),
-	.mewb_aluresult(memwb_aluresult),
-	.data_ack(data_ack)
+	.dest_reg(MEMWB_rd),
+	.mewb_aluresult(MEMWB_aluresult),
+	.MEMWB_ready(MEMWB_ready)
 );
+
+
+
+
   initial begin
     $display("Initializing top, entry point = 0x%x", entry);
   end

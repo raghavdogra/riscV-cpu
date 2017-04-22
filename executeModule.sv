@@ -18,7 +18,7 @@ module executeMod
     output [5:0] dest_reg,
     output mem_active,
     output load,
-    output EXMEM_ready;
+    output EXMEM_ready
 );
 
 getreg gr_name();

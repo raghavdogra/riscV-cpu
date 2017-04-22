@@ -14,7 +14,7 @@ module memoryMod
 
     output [63:0] memwb_aluresult,
     output [63:0] memwb_loadeddata,
-    output [5:0] memwb_rd.
+    output [5:0] memwb_rd,
     output MEMWB_ready
 );
 
@@ -32,5 +32,5 @@ always_ff @(posedge clk) begin
 		memwb_rd <= exmem_rd;
     	end
 end
-
+end
 endmodule
