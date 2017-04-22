@@ -10,14 +10,15 @@ module executeMod
     input signed [63:0] rs1,
     input signed [63:0] rs2,
     input signed [19:0] immediate,
-    input [64:0] idex_npc,
+    input [64:0] IDEX_npc,
     output [63:0] target_pc,
     output branch,
-    input data_ack,
+    input IDEX_ready,
     output [63:0] exmm_aluresult,
     output [5:0] dest_reg,
     output mem_active,
-    output load
+    output load,
+    output EXMEM_ready;
 );
 
 getreg gr_name();
@@ -38,9 +39,11 @@ getreg gr_name();
 	mem_active = 0;
     //  exmm_aluresult = immediate;
 	//$display("%0s", opcode);
-	if(data_ack == 0) begin 
-	end else begin
+	if(IDEX_ready == 0) begin 
+		EXMEM_ready = 0;
+	end else begin 
 	dest_reg = rd;
+	EXMEM_ready = 1;
 	case(opcode)
 		
 		"add": begin
@@ -121,10 +124,10 @@ getreg gr_name();
                         end
 		"auipc": begin
 			temp = {immediate,3'h000};
-                        exmm_aluresult = idex_npc + temp;
+                        exmm_aluresult = IDEX_npc + temp;
                         end
  		"jal": begin 
-			temp = idex_npc + immediate + 4;
+			temp = IDEX_npc + immediate + 4;
                         exmm_aluresult = temp;
 			end
 		"jalr": begin

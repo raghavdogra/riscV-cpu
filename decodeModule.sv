@@ -3,15 +3,16 @@ module decodeMod
 input clk,
 input reset,
 input [31:0] instr_reg,
-input [63:0] ifid_npc,
-output [63:0] idex_npc,
+input [63:0] IFID_npc,
+input IFID_ready,
+output [63:0] IDEX_npc,
 output [64:0] opcode,
 output signed [63:0] rs1,
 output signed [63:0] rs2,
 output signed [5:0] rd,
 output signed [19:0] immediate,
+output IDEX_ready
 //output signed [64:0] pcint
-input data_ack
 );
 
 logic signed [11:0] temp;
@@ -28,7 +29,8 @@ always_ff @(posedge clk) begin
 		immediate = 0;
 	//	pcint = 0;
 	end
-	else if (data_ack == 0) begin
+	else if (IFID_ready == 0) begin
+		IDEX_ready = 0;
 	end
 	else begin
 		//opcode = "null";
@@ -36,6 +38,7 @@ always_ff @(posedge clk) begin
 		//rs2 = 0;
 		//rd = 0;
 		//immediate = 0;
+		IDEX_ready = 1;
 		 if(instr_reg == 8'h00) begin
                 	//i_execute.printRegister;
 			//$finish;

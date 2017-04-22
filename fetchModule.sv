@@ -17,16 +17,16 @@ module fetchMod
   output bus_respack,
   output [BUS_DATA_WIDTH-1:0] bus_req,
   output [BUS_TAG_WIDTH-1:0] bus_reqtag,
+  output [31:0] instr_reg,
+  output [63:0] pc,      // Cache
+  output [63:0] IFID_npc,      // Decode
+  output data_ack,
   input  bus_respcyc,
   input  bus_reqack,
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
   input  [BUS_TAG_WIDTH-1:0] bus_resptag,
-  input  [63:0] target_pc, // Memory Module
-  input  branch,          // Memory Module
-  output [31:0] instr_reg,
-  output [63:0] pc,      // Cache
-  output [63:0] ifid_npc,      // Decode
-  output data_ack
+  input  [63:0] EXIF_targetpc,
+  input  EXIF_branch 
 );
 
 cache

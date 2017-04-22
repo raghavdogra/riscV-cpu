@@ -92,6 +92,7 @@ decodeMod
 	.data_ack(data_ack)
 //	.pcint(pcint)
 	);
+
 wire [63:0]exmm_aluresult;
 wire [5:0] dest_reg;
 wire mem_active;
@@ -149,10 +150,6 @@ i_writeback
 	.mewb_aluresult(memwb_aluresult),
 	.data_ack(data_ack)
 );
-
-
-
-
   initial begin
     $display("Initializing top, entry point = 0x%x", entry);
   end
