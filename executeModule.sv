@@ -5,12 +5,12 @@ module executeMod
 (
     input clk,
     input reset,
-    input [64:0] opcode,
-    input [5:0] rd,
-    input signed [63:0] rs1,
-    input signed [63:0] rs2,
-    input signed [19:0] immediate,
-    input [64:0] IDEX_npc,
+    input [64:0] next_opcode,
+    input [5:0] next_rd,
+    input signed [63:0] next_rs1,
+    input signed [63:0] next_rs2,
+    input signed [19:0] next_immediate,
+    input [64:0] next_IDEX_npc,
     output [63:0] target_pc,
     output branch,
     input IDEX_ready,
@@ -30,6 +30,15 @@ getreg gr_name();
     logic signed [127:0] sign128;
     logic signed [31:0] sign32 [3:0];
 
+
+    logic [64:0] opcode;
+    logic [5:0] rd;
+    logic signed [63:0] rs1;
+    logic signed [63:0] rs2;
+    logic signed [19:0] immediate;
+    logic [64:0] IDEX_npc;
+
+
     logic bt;
     int x;
     logic [32:0] name;
@@ -41,9 +50,24 @@ getreg gr_name();
 	//$display("%0s", opcode);
 	if(IDEX_ready == 0) begin 
 		EXMEM_ready = 0;
+        opcode <= opcode;
+        rd <= rd;
+        rs1 <= rs1;
+        rs2 <= rs2;
+        immediate <= immediate;
+        IDEX_npc <= IDEX_npc;
 	end else begin 
-	dest_reg = rd;
 	EXMEM_ready = 1;
+	opcode <= next_opcode;
+	rd <= next_rd;
+	rs1 <= next_rs1;
+	rs2 <= next_rs2;
+	immediate <= next_immediate;
+	IDEX_npc <= next_IDEX_npc;
+	end
+    end
+always_comb begin
+	dest_reg = rd;
 	case(opcode)
 		
 		"add": begin
@@ -288,7 +312,7 @@ getreg gr_name();
      //  end 
     //  $display ("%0s,%0x,%0x,%0x, %0d",opcode,rd,rs1,rs2, immediate);
    
-    end
+ 
 //	gr_name.convert(rd,name);
 //        $display ("%0s\t%0s\t => %0d",opcode,name,exmm_aluresult);
 

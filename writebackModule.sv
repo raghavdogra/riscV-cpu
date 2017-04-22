@@ -14,7 +14,8 @@ always_ff @(posedge clk) begin
 	else if(MEMWB_ready == 0) begin
 	end
 	else begin
-		regfile.gpr[dest_reg] = mewb_aluresult;
+		regfile.gpr[dest_reg] <= mewb_aluresult;
+		i_execute.printRegister;
 	end
 end
 

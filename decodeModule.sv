@@ -2,7 +2,7 @@ module decodeMod
 (
 input clk,
 input reset,
-input [31:0] instr_reg,
+input [31:0] IFID_instreg,
 input [63:0] IFID_npc,
 input IFID_ready,
 output [63:0] IDEX_npc,
@@ -19,6 +19,7 @@ logic signed [11:0] temp;
 logic signed [12:0] temp_addr;
 logic signed [64:0] address;
 logic signed [20:0] offset;
+logic [31:0] instr_reg;
 
 always_ff @(posedge clk) begin
 	if(reset) begin
@@ -31,6 +32,7 @@ always_ff @(posedge clk) begin
 	end
 	else if (IFID_ready == 0) begin
 		IDEX_ready = 0;
+		instr_reg <= instr_reg;
 	end
 	else begin
 		//opcode = "null";
@@ -38,7 +40,12 @@ always_ff @(posedge clk) begin
 		//rs2 = 0;
 		//rd = 0;
 		//immediate = 0;
+		instr_reg <= IFID_instreg;
 		IDEX_ready = 1;
+	$display("%s, %x, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
+	end
+end
+always_comb begin
 		 if(instr_reg == 8'h00) begin
                 	//i_execute.printRegister;
 			//$finish;
@@ -195,8 +202,9 @@ always_ff @(posedge clk) begin
                            		temp = instr_reg[31:20];
                        		end
              		endcase
+		
         	end
-	$display("%s, %b, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
+//	$display("%s, %b, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
      end
-  end
+
 endmodule

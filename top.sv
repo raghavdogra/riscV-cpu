@@ -36,7 +36,7 @@ registerfile regfile();
 
 // Fetch Module Wires
 
-wire [31:0] instr_reg;
+wire [31:0] IFID_instreg;
 wire IFID_ready;
 wire [63:0] pc;
 wire [63:0] IFID_npc;
@@ -62,7 +62,7 @@ fetchMod
 //outputs
 	.pc(pc),
 	.data_ack(IFID_ready),
-	.instr_reg(instr_reg),
+	.instr_reg(IFID_instreg),
 	.IFID_npc(IFID_npc),
 	
 //bus interface
@@ -90,7 +90,7 @@ decodeMod
 //inputs
 	.clk(clk),
 	.reset(reset),
-	.instr_reg(instr_reg),
+	.IFID_instreg(IFID_instreg),
 	.IFID_npc(IFID_npc),
 	.IFID_ready(IFID_ready),
 	
@@ -116,12 +116,12 @@ i_execute
 //inputs
     .clk(clk),
     .reset(reset),
-    .opcode(IDEX_opcode),
-    .rd(IDEX_rd),
-    .rs1(IDEX_rs1),
-    .rs2(IDEX_rs2),
-    .immediate(IDEX_immediate),
-    .IDEX_npc(IDEX_npc),
+    .next_opcode(IDEX_opcode),
+    .next_rd(IDEX_rd),
+    .next_rs1(IDEX_rs1),
+    .next_rs2(IDEX_rs2),
+    .next_immediate(IDEX_immediate),
+    .next_IDEX_npc(IDEX_npc),
     .IDEX_ready(IDEX_ready),
     
 
@@ -149,8 +149,8 @@ i_memory
     .reset(reset),
     .mem_active(mem_active),
     .load(load),
-    .exmem_aluresult(EXMEM_aluresult),
-    .exmem_rd(EXMEM_rd),
+    .next_exmem_aluresult(EXMEM_aluresult),
+    .next_exmem_rd(EXMEM_rd),
     //.exmem_rs2(rs2),
     .target_pc(EXIM_targetpc),
     .EXMEM_ready(EXMEM_ready),
