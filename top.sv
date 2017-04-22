@@ -3,6 +3,7 @@
 `include "decodeModule.sv"
 `include "registerfile.sv"
 `include "executeModule.sv"
+`include "memoryModule.sv"
 `include "writebackModule.sv"
 module top
 #(
@@ -93,7 +94,8 @@ decodeMod
 	);
 wire [63:0]exmm_aluresult;
 wire [5:0] dest_reg;
-
+wire mem_active;
+wire load;
 
 executeMod
 i_execute
@@ -110,7 +112,32 @@ i_execute
     .branch(branch),
     .data_ack(data_ack),
     .dest_reg(dest_reg),
-    .exmm_aluresult(exmm_aluresult)
+    .exmm_aluresult(exmm_aluresult),
+    .mem_active(mem_active),
+    .load(load)
+);
+
+
+    wire [63:0] memwb_aluresult;
+    wire [63:0] memwb_loadeddata;
+    wire [5:0] memwb_rd;
+
+memoryMod
+i_memory
+(
+    .clk(clk),
+    .reset(reset),
+    .mem_active(mem_active),
+    .load(load),
+    .exmem_aluresult(exmm_aluresult),
+    .exmem_rd(dest_reg),
+    .exmem_rs2(rs2),
+    .target_pc(target_pc),
+    .data_ack(data_ack),
+//outputs
+    .memwb_aluresult(memwb_aluresult),
+    .memwb_loadeddata(memwb_loadeddata),
+    .memwb_rd(memwb_rd)
 );
 
 writebackMod
@@ -118,8 +145,8 @@ i_writeback
 (
 	.clk(clk),
 	.reset(reset),
-	.dest_reg(dest_reg),
-	.mewb_aluresult(exmm_aluresult),
+	.dest_reg(memwb_rd),
+	.mewb_aluresult(memwb_aluresult),
 	.data_ack(data_ack)
 );
 

@@ -40,6 +40,7 @@ getreg gr_name();
 	if(data_ack == 0) begin 
 	end else begin
 	dest_reg = rd;
+	mem_active <= 0;
 	case(opcode)
 		
 		"add": begin
