@@ -35,12 +35,12 @@ getreg gr_name();
    // output [4*8:0] name;
    always_ff @(posedge clk) begin
      regfile.gpr[0] = 0; 
+	mem_active = 0;
     //  exmm_aluresult = immediate;
 	//$display("%0s", opcode);
 	if(data_ack == 0) begin 
 	end else begin
 	dest_reg = rd;
-	mem_active <= 0;
 	case(opcode)
 		
 		"add": begin
