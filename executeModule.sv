@@ -13,7 +13,11 @@ module executeMod
     input [64:0] idex_npc,
     output [63:0] target_pc,
     output branch,
-    input data_ack
+    input data_ack,
+    output [63:0] exmm_aluresult,
+    output [5:0] dest_reg,
+    output mem_active,
+    output load
 );
 
 getreg gr_name();
@@ -31,105 +35,107 @@ getreg gr_name();
    // output [4*8:0] name;
    always_ff @(posedge clk) begin
      regfile.gpr[0] = 0; 
-    //  regfile.gpr[rd] = immediate;
+    //  exmm_aluresult = immediate;
 	//$display("%0s", opcode);
 	if(data_ack == 0) begin 
 	end else begin
+	dest_reg = rd;
 	case(opcode)
+		
 		"add": begin
-			regfile.gpr[rd] = rs1 + rs2;
+			exmm_aluresult = rs1 + rs2;
 			end
 		"addw": begin
 			sign32[0] = rs1;
                         sign32[1] = rs2;
                         sign32[2] = sign32[0] + sign32[1];
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
 			end
 		"xor": begin
-			regfile.gpr[rd] = rs1 ^ rs2;
+			exmm_aluresult = rs1 ^ rs2;
 			end
 		"or": begin
-			regfile.gpr[rd] = rs1 | rs2;
+			exmm_aluresult = rs1 | rs2;
 			end
 		"and": begin
-			regfile.gpr[rd] = rs1 & rs2;
+			exmm_aluresult = rs1 & rs2;
 			end
 		"addi": begin
-			regfile.gpr[rd] = rs1 + immediate;
+			exmm_aluresult = rs1 + immediate;
 			end
 		"addiw": begin
                         sign32[0] = rs1 + immediate;
-                        regfile.gpr[rd] = sign32[0];
+                        exmm_aluresult = sign32[0];
 			end
 		"sub": begin
-			regfile.gpr[rd] = rs1 - rs2;
+			exmm_aluresult = rs1 - rs2;
 			end
 		"subw": begin
                         sign32[0] = rs1;
                         sign32[1] = rs2;
                         sign32[2] = sign32[0] - sign32[1];
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
 			end
 		"slti": begin
 			if (rs1 < immediate)
-				regfile.gpr[rd] = 1;
+				exmm_aluresult = 1;
 			else
-				regfile.gpr[rd] = 0;
+				exmm_aluresult = 0;
 			end
                 "sltiu": begin
 			getAbs(rs1,abs);
 			getAbs(immediate,abs1);
                         if (abs < abs1)
-                                regfile.gpr[rd] = 1;
+                                exmm_aluresult = 1;
                         else
-                                regfile.gpr[rd] = 0;
+                                exmm_aluresult = 0;
                         end
 
                 "slt": begin
                         if (rs1 < rs2)
-                                regfile.gpr[rd] = 1;
+                                exmm_aluresult = 1;
                         else
-                                regfile.gpr[rd] = 0;
+                                exmm_aluresult = 0;
                         end
                 "sltu": begin
                         getAbs(rs1,abs);
                         getAbs(rs2,abs1);
                         if (abs < abs1)
-                                regfile.gpr[rd] = 1;
+                                exmm_aluresult = 1;
                         else
-                                regfile.gpr[rd] = 0;
+                                exmm_aluresult = 0;
                         end
      
 		"andi": begin
-			regfile.gpr[rd] = rs1 & immediate;
+			exmm_aluresult = rs1 & immediate;
 			end
 		"xori": begin
-			regfile.gpr[rd] = rs1 ^ immediate;
+			exmm_aluresult = rs1 ^ immediate;
 			end
 		"ori": begin
-			regfile.gpr[rd] = rs1 | immediate;
+			exmm_aluresult = rs1 | immediate;
 			end
   		"lui": begin
-			regfile.gpr[rd] = {immediate,3'h000};
+			exmm_aluresult = {immediate,3'h000};
                         end
 		"auipc": begin
 			temp = {immediate,3'h000};
-                        regfile.gpr[rd] = idex_npc + temp;
+                        exmm_aluresult = idex_npc + temp;
                         end
  		"jal": begin 
 			temp = idex_npc + immediate + 4;
-                        regfile.gpr[rd] = temp;
+                        exmm_aluresult = temp;
 			end
 		"jalr": begin
 			temp = rs1 + immediate;
 			temp[0] = 0;
- 			regfile.gpr[rd] = temp + 4;
+ 			exmm_aluresult = temp + 4;
                 	end
 		"slli": begin
-			regfile.gpr[rd] = rs1 << immediate[4:0];
+			exmm_aluresult = rs1 << immediate[4:0];
 			end
 		"srli": begin
-			regfile.gpr[rd] = rs1 >> immediate[4:0];
+			exmm_aluresult = rs1 >> immediate[4:0];
 			end
 		"srai": begin
 			temp = rs1;
@@ -139,17 +145,17 @@ getreg gr_name();
  			for (int i=63; i > (63-x); i--) begin
 					temp[i] = bt;
 				end
-			regfile.gpr[rd] = temp;
+			exmm_aluresult = temp;
 			end
 		"slliw": begin
                         sign32[0] = rs1;
                         sign32[1] = sign32[0] << immediate[4:0];
-                        regfile.gpr[rd] = sign32[1];
+                        exmm_aluresult = sign32[1];
                         end
                 "srliw": begin
                         sign32[0] = rs1;
                         sign32[1] = sign32[0] >> immediate[4:0];
-                        regfile.gpr[rd] = sign32[1];
+                        exmm_aluresult = sign32[1];
                         end
                 "sraiw": begin
                         sign32[0] = rs1;
@@ -159,13 +165,13 @@ getreg gr_name();
                         for (int i=31; i > (31-x); i--) begin
                        			 sign32[1][i] = bt;
                        	 	end
-                        regfile.gpr[rd] = sign32[1];
+                        exmm_aluresult = sign32[1];
 			end
                "sll": begin
-                        regfile.gpr[rd] = rs1 << rs2[4:0];
+                        exmm_aluresult = rs1 << rs2[4:0];
                         end
                 "srl": begin
-                        regfile.gpr[rd] = rs1 >> rs2[4:0];
+                        exmm_aluresult = rs1 >> rs2[4:0];
                         end
                 "sra": begin
                         temp = rs1;
@@ -176,20 +182,20 @@ getreg gr_name();
                         for (int i=63; i > (63-x); i--) begin
                                         temp[i] = bt;
                                 end
-                        regfile.gpr[rd] = temp;
+                        exmm_aluresult = temp;
                         end
                 "sllw": begin
 			sign32[0] = rs1;
                         sign32[1] = rs2;
                         sign32[2] = sign32[0] << sign32[1][4:0];
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
                         end
                 "srlw": begin
 			sign32[0] = rs1;
                         sign32[1] = rs2;
                         sign32[2] = sign32[0] >> sign32[1][4:0];
-                        regfile.gpr[rd] = sign32[2];
-                      //  regfile.gpr[rd] = rs1 >> rs2;
+                        exmm_aluresult = sign32[2];
+                      //  exmm_aluresult = rs1 >> rs2;
                         end
                 "sraw": begin
                         sign32[0] = rs1;
@@ -200,21 +206,21 @@ getreg gr_name();
                         for (int i=31; i > (31-x); i--) begin
                                          sign32[2][i] = bt;
                                 end
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
                         end
 		"rem":  begin
-                        regfile.gpr[rd] = rs1 % rs2;
+                        exmm_aluresult = rs1 % rs2;
                         end
                 "remu": begin
                         getAbs(rs1, abs);
                         getAbs(rs2, abs1);
-                        regfile.gpr[rd] = abs % abs1;
+                        exmm_aluresult = abs % abs1;
                         end
                 "remw":  begin
 			sign32[0] = rs1;
                         sign32[1] = rs2;
                         sign32[2] = sign32[0] % sign32[1];
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
                         end
                 "remuw": begin
 			sign32[0] = rs1;
@@ -222,21 +228,21 @@ getreg gr_name();
                         getAbs(sign32[0], abs);
                         getAbs(sign32[1], abs1);
 			sign32[2] = abs % abs1;
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
                         end
                 "div":  begin
-                        regfile.gpr[rd] = rs1 / rs2;
+                        exmm_aluresult = rs1 / rs2;
                         end
                 "divu": begin
                         getAbs(rs1, abs);
                         getAbs(rs2, abs1);
-                        regfile.gpr[rd] = abs / abs1;
+                        exmm_aluresult = abs / abs1;
                         end
                 "divw":  begin
 			sign32[0] = rs1;
                         sign32[1] = rs2;
                         sign32[2] = sign32[0] / sign32[1];
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
                         end
                 "divuw": begin
 			sign32[0] = rs1;
@@ -244,29 +250,29 @@ getreg gr_name();
                         getAbs(sign32[0], abs);
                         getAbs(sign32[1], abs1);
 			sign32[2] = abs / abs1;
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
                         end
-		"mul":	 regfile.gpr[rd] = rs1 * rs2;
+		"mul":	 exmm_aluresult = rs1 * rs2;
 		"mulw": begin
 			sign32[0] = rs1;
                         sign32[1] = rs2;
                         sign32[2] = sign32[0] * sign32[1];
-                        regfile.gpr[rd] = sign32[2];
+                        exmm_aluresult = sign32[2];
 			end
 		"mulh": begin
 			sign128 = rs1 * rs2;
-			regfile.gpr[rd] = sign128[127:64];
+			exmm_aluresult = sign128[127:64];
 			end
 		"mulhsu":begin
                          getAbs(rs2, abs1);
                          sign128 = rs1 * abs1;
-                         regfile.gpr[rd] = sign128[127:64];
+                         exmm_aluresult = sign128[127:64];
 			end
 		"mulhu": begin
 			 getAbs(rs1, abs);
                          getAbs(rs2, abs1);
 			 unsign128 = abs * abs1;
-			 regfile.gpr[rd] = unsign128[127:64];
+			 exmm_aluresult = unsign128[127:64];
 			 end
 //		default: begin
 //			$display("not add or mv");
@@ -280,12 +286,12 @@ getreg gr_name();
    
     end
 //	gr_name.convert(rd,name);
-//        $display ("%0s\t%0s\t => %0d",opcode,name,regfile.gpr[rd]);
+//        $display ("%0s\t%0s\t => %0d",opcode,name,exmm_aluresult);
 
 
  task printRegister;
 logic [32:0] name;
- //    regfile.gpr[rd] = immediate;
+ //    exmm_aluresult = immediate;
        for (int i=0; i<=31; i++) begin
         gr_name.convert(i,name);
 	$display ("%0s	%x	%0d",name,regfile.gpr[i],regfile.gpr[i]);

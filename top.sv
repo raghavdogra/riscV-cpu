@@ -3,6 +3,7 @@
 `include "decodeModule.sv"
 `include "registerfile.sv"
 `include "executeModule.sv"
+`include "writebackModule.sv"
 module top
 #(
   BUS_DATA_WIDTH = 64,
@@ -90,6 +91,10 @@ decodeMod
 	.data_ack(data_ack)
 //	.pcint(pcint)
 	);
+wire [63:0]exmm_aluresult;
+wire [5:0] dest_reg;
+
+
 executeMod
 i_execute
 (   
@@ -103,8 +108,21 @@ i_execute
     .idex_npc(idex_npc),
     .target_pc(target_pc),
     .branch(branch),
-    .data_ack(data_ack)
+    .data_ack(data_ack),
+    .dest_reg(dest_reg),
+    .exmm_aluresult(exmm_aluresult)
 );
+
+writebackMod
+i_writeback
+(
+	.clk(clk),
+	.reset(reset),
+	.dest_reg(dest_reg),
+	.mewb_aluresult(exmm_aluresult),
+	.data_ack(data_ack)
+);
+
 
 
 
