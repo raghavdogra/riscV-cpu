@@ -38,38 +38,58 @@ getreg gr_name();
     logic signed [19:0] immediate;
     logic [64:0] IDEX_npc;
 
-
+     logic X;
     logic bt;
     int x;
     logic [32:0] name;
    // output [4*8:0] name;
-   always_ff @(posedge clk) begin
-     regfile.gpr[0] = 0; 
-	mem_active = 0;
-    //  exmm_aluresult = immediate;
-	//$display("%0s", opcode);
-	if(IDEX_ready == 0) begin 
-		EXMEM_ready = 0;
-        opcode <= opcode;
-        rd <= rd;
-        rs1 <= rs1;
-        rs2 <= rs2;
-        immediate <= immediate;
-        IDEX_npc <= IDEX_npc;
-	end else begin 
-	EXMEM_ready = 1;
-	opcode <= next_opcode;
-	rd <= next_rd;
-	rs1 <= next_rs1;
-	rs2 <= next_rs2;
-	immediate <= next_immediate;
-	IDEX_npc <= next_IDEX_npc;
-	end
+   
+ always_ff @(posedge clk) begin
+    if (reset) begin
     end
+    else if(IDEX_ready == 0) begin
+        EXMEM_ready = 0;
+    end else begin
+        EXMEM_ready =1;
+    end
+end
+ 
+
+   always_ff @(posedge clk) begin
+     	if (reset) begin
+	end
+	else begin
+    		//  exmm_aluresult = immediate;
+		//$display("%0s", opcode);
+//		X <= IDEX_ready;
+		if(IDEX_ready == 0) begin 
+		//	EXMEM_ready = 0;
+       		 	opcode <= opcode;
+        		rd <= rd;
+        		rs1 <= rs1;
+        		rs2 <= rs2;
+        		immediate <= immediate;
+        		IDEX_npc <= IDEX_npc;
+		end else begin 
+		//	EXMEM_ready = 1;
+			opcode <= next_opcode;
+			rd <= next_rd;
+			rs1 <= next_rs1;
+			rs2 <= next_rs2;
+			immediate <= next_immediate;
+			IDEX_npc <= next_IDEX_npc;
+		end
+		regfile.gpr[0] = 0; 
+		mem_active = 0;
+      end
+   end
 always_comb begin
+//	if(X == 0)
+//		EXMEM_ready = 0;
+//	else
+//		EXMEM_ready = 1;
 	dest_reg = rd;
-	case(opcode)
-		
+	case(opcode)	
 		"add": begin
 			exmm_aluresult = rs1 + rs2;
 			end
