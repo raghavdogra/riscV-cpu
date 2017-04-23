@@ -34,7 +34,7 @@ always_ff @(posedge clk) begin
 	end else begin
 	//	X = IFID_ready;
 		if (IFID_ready == 0) begin
-			IDEX_ready = 0;
+			IDEX_ready <= 0;
 			instr_reg <= instr_reg;
 		end
 		else begin
@@ -44,7 +44,7 @@ always_ff @(posedge clk) begin
 			//rd = 0;
 			//immediate = 0;
 			instr_reg <= IFID_instreg;
-			IDEX_ready = 1;
+			IDEX_ready <= 1;
 			$display("%s, %x, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
 		end
 	end

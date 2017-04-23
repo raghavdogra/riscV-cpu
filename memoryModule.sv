@@ -21,16 +21,32 @@ module memoryMod
     logic [63:0] exmem_aluresult;
     logic [5:0] exmem_rd;
 
+
+
 always_ff @(posedge clk) begin
     if (reset) begin
     end
     else if(EXMEM_ready == 0) begin
-    	MEMWB_ready = 0;
+        MEMWB_ready <= 0;
+
+    end else begin
+        MEMWB_ready <= 1;
+end
+end
+
+
+
+
+always_ff @(posedge clk) begin
+    if (reset) begin
+    end
+    else if(EXMEM_ready == 0) begin
+    	//MEMWB_ready = 0;
                 exmem_aluresult <= exmem_aluresult;
                 exmem_rd <= exmem_rd;
 
     end else begin
-	MEMWB_ready =1;
+	//MEMWB_ready =1;
     	if (mem_active==1) begin
     	end 
     	else begin

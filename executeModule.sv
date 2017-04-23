@@ -48,9 +48,9 @@ getreg gr_name();
     if (reset) begin
     end
     else if(IDEX_ready == 0) begin
-        EXMEM_ready = 0;
+        EXMEM_ready <= 0;
     end else begin
-        EXMEM_ready =1;
+        EXMEM_ready <= 1;
     end
 end
  
