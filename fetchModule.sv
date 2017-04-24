@@ -70,7 +70,7 @@ end
 	else begin
 		if(data_ack == 1) begin
         		if(instr_reg == 8'h00) begin
-			//	i_execute.printRegister;
+				i_execute.printRegister;
 				$finish;
 			end
 		//	$display("Instruction Register %x",instr_reg);

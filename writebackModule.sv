@@ -4,7 +4,9 @@ input clk,
 input reset,
 input [5:0] dest_reg,
 input [63:0] mewb_aluresult,
-input MEMWB_ready
+input MEMWB_ready,
+output [5:0] WBEX_rd,
+output [63:0] WBEX_rdval
 );
 
 
@@ -15,7 +17,8 @@ always_ff @(posedge clk) begin
 	end
 	else begin
 		regfile.gpr[dest_reg] <= mewb_aluresult;
-		i_execute.printRegister;
+		WBEX_rdval <= regfile.gpr[dest_reg]; 
+		//i_execute.printRegister;
 	end
 end
 

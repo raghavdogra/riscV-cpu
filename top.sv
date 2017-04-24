@@ -77,6 +77,7 @@ fetchMod
 	.bus_respack(bus_respack)
 	);
 
+// Decode Module Wires
 wire [63:0] IDEX_npc;
 wire [63:0] IDEX_rs1;
 wire [63:0] IDEX_rs2;
@@ -84,6 +85,8 @@ wire [5:0] IDEX_rd;
 wire [19:0] IDEX_immediate;
 wire [63:0] IDEX_opcode;
 wire IDEX_ready;
+wire [5:0] IDEX_rs1reg;
+wire [5:0] IDEX_rs2reg;
 
 decodeMod
 	i_decode (
@@ -101,9 +104,13 @@ decodeMod
 	.rs1(IDEX_rs1),
 	.rs2(IDEX_rs2),
 	.rd(IDEX_rd),
-	.immediate(IDEX_immediate)
+	.immediate(IDEX_immediate),
+	.IDEX_rs1reg(IDEX_rs1reg),
+        .IDEX_rs2reg(IDEX_rs2reg)
 //	.pcint(pcint)
 	);
+
+
 wire [63:0]EXMEM_aluresult;
 wire [5:0] EXMEM_rd;
 wire EXMEM_ready;
@@ -120,11 +127,15 @@ i_execute
     .next_rd(IDEX_rd),
     .next_rs1(IDEX_rs1),
     .next_rs2(IDEX_rs2),
+    .next_rs1reg(IDEX_rs1reg),
+    .next_rs2reg(IDEX_rs2reg),
     .next_immediate(IDEX_immediate),
     .next_IDEX_npc(IDEX_npc),
     .IDEX_ready(IDEX_ready),
-    
-
+    .MEMEX_rd(MEMEX_rd),
+    .WBEX_rd(WBEX_ed),
+    .MEMEX_rdval(MEMEX_rdval),
+    .WBEX_rdval(WBEX_rdval),
 //outputs
     .EXMEM_ready(EXMEM_ready),
     .mem_active(mem_active),
@@ -140,6 +151,8 @@ i_execute
     wire [63:0] MEMWB_loadeddata;
     wire [5:0] MEMWB_rd;
     wire MEMWB_ready;
+    wire [5:0] MEMEX_rd;
+    wire [63:0] MEMEX_rdval;
 
 memoryMod
 i_memory
@@ -159,9 +172,13 @@ i_memory
     .memwb_aluresult(MEMWB_aluresult),
     .memwb_loadeddata(MEMWB_loadeddata),
     .memwb_rd(MEMWB_rd),
-    .MEMWB_ready(MEMWB_ready)
+    .MEMWB_ready(MEMWB_ready),
+    .MEMEX_rd(MEMEX_rd),
+    .MEMEX_rdval(MEMEX_rdval)
 );
 
+wire [5:0] WBEX_rd;
+wire [63:0] WBEx_rdval;
 writebackMod
 i_writeback
 (
@@ -169,7 +186,9 @@ i_writeback
 	.reset(reset),
 	.dest_reg(MEMWB_rd),
 	.mewb_aluresult(MEMWB_aluresult),
-	.MEMWB_ready(MEMWB_ready)
+	.MEMWB_ready(MEMWB_ready),
+	.WBEX_rd(WBEX_rd),
+	.WBEX_rdval(WBEX_rdval)
 );
 
 

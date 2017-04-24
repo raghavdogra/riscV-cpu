@@ -11,7 +11,9 @@ output signed [63:0] rs1,
 output signed [63:0] rs2,
 output signed [5:0] rd,
 output signed [19:0] immediate,
-output IDEX_ready
+output IDEX_ready,
+output [5:0] IDEX_rs1reg,
+output [5:0] IDEX_rs2reg
 //output signed [64:0] pcint
 );
 
@@ -32,7 +34,6 @@ always_ff @(posedge clk) begin
 		immediate = 0;
 	//	pcint = 0;
 	end else begin
-	//	X = IFID_ready;
 		if (IFID_ready == 0) begin
 			IDEX_ready <= 0;
 			instr_reg <= instr_reg;
@@ -45,16 +46,11 @@ always_ff @(posedge clk) begin
 			//immediate = 0;
 			instr_reg <= IFID_instreg;
 			IDEX_ready <= 1;
-			$display("%s, %x, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
+			//$display("%s, %x, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
 		end
 	end
 end
 always_comb begin
-//	if(X == 0) begin
-//		IDEX_ready = 0;
-//	end else begin
-//		IDEX_ready = 1;
-//	end
 		 if(instr_reg == 8'h00) begin
                 	//i_execute.printRegister;
 			//$finish;
@@ -85,6 +81,8 @@ always_comb begin
 			rd =instr_reg[11:7];
 			rs1 = regfile.gpr[instr_reg[19:15]];
 			rs2 = regfile.gpr[instr_reg[24:20]];
+			IDEX_rs1reg = instr_reg[19:15];
+			IDEX_rs2reg = instr_reg[24:20];
 			immediate = 0;
         	end else if (instr_reg[6:0] == 7'b0010011) begin
                 	temp = instr_reg[31:20]; 
@@ -106,6 +104,9 @@ always_comb begin
 			rd = instr_reg[11:7];
 			rs1 = regfile.gpr[instr_reg[19:15]];
 			rs2 = 0;
+			IDEX_rs1reg = instr_reg[19:15];
+                        IDEX_rs2reg = 0;
+
 			immediate = temp;
         	end else if (instr_reg[6:0] == 7'b0000011) begin
                 	temp = instr_reg[31:20];
@@ -121,6 +122,8 @@ always_comb begin
                 	rd = instr_reg[11:7];
                 	rs1 = regfile.gpr[instr_reg[19:15]];
                 	rs2 = 0;
+                        IDEX_rs1reg = instr_reg[19:15];
+                        IDEX_rs2reg = 0;
                	 	immediate = temp;
        		end else if (instr_reg[6:0] == 7'b1100011) begin
                 	temp_addr = {instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0}; 
@@ -144,6 +147,8 @@ always_comb begin
                 	rd = 0;
                 	rs1 = regfile.gpr[instr_reg[19:15]];
                 	rs2 = regfile.gpr[instr_reg[24:20]];
+                        IDEX_rs1reg = instr_reg[19:15];
+                        IDEX_rs2reg = instr_reg[24:20];
                 	immediate = temp;
          	end else if (instr_reg[6:0] == 7'b0111011) begin
                 	case({instr_reg[30],instr_reg[25], instr_reg[14:12]})
@@ -161,6 +166,8 @@ always_comb begin
 			rd = instr_reg[11:7];
 			rs1 = regfile.gpr[instr_reg[19:15]];
 			rs2 = regfile.gpr[instr_reg[24:20]];
+                        IDEX_rs1reg = instr_reg[19:15];
+                        IDEX_rs2reg = instr_reg[24:20];
 			immediate = 0;
         	end else if (instr_reg[6:0] == 7'b0011011) begin
                 	temp = instr_reg[31:20]; 
@@ -175,6 +182,8 @@ always_comb begin
                 	rd = instr_reg[11:7];
                 	rs1 = regfile.gpr[instr_reg[19:15]];
                 	rs2 = 0;
+                        IDEX_rs1reg = instr_reg[19:15];
+                        IDEX_rs2reg = 0;
                 	immediate = temp;
         	end else if (instr_reg[6:0] == 7'b1110011) begin
                		case(instr_reg[14:12])

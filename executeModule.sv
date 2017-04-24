@@ -11,6 +11,12 @@ module executeMod
     input signed [63:0] next_rs2,
     input signed [19:0] next_immediate,
     input [64:0] next_IDEX_npc,
+    input [5:0] next_rs1reg,
+    input [5:0] next_rs2reg,
+    input [5:0] MEMEX_rd,
+    input [5:0] WBEX_rd,
+    input [63:0] WBEX_rdval,
+    input [63:0] MEMEX_rdval,
     output [63:0] target_pc,
     output branch,
     input IDEX_ready,
@@ -38,7 +44,6 @@ getreg gr_name();
     logic signed [19:0] immediate;
     logic [64:0] IDEX_npc;
 
-     logic X;
     logic bt;
     int x;
     logic [32:0] name;
@@ -61,9 +66,7 @@ end
 	else begin
     		//  exmm_aluresult = immediate;
 		//$display("%0s", opcode);
-//		X <= IDEX_ready;
 		if(IDEX_ready == 0) begin 
-		//	EXMEM_ready = 0;
        		 	opcode <= opcode;
         		rd <= rd;
         		rs1 <= rs1;
@@ -71,23 +74,38 @@ end
         		immediate <= immediate;
         		IDEX_npc <= IDEX_npc;
 		end else begin 
-		//	EXMEM_ready = 1;
 			opcode <= next_opcode;
-			rd <= next_rd;
-			rs1 <= next_rs1;
-			rs2 <= next_rs2;
+			if(next_rs1reg == WBEX_rd)begin
+				rs1 <= WBEX_rdval;
+				rs2 <= next_rs2;
+			end else if(next_rs2reg == WBEX_rd) begin
+				rs2 <= WBEX_rdval;
+				rs1 <= next_rs1;
+			end else if(next_rs1reg == MEMEX_rd) begin
+                                rs1 <= MEMEX_rdval;
+				rs2 <= next_rs2;
+                        end else if(next_rs2reg == MEMEX_rd) begin
+                                rs2 <= MEMEX_rdval;
+				rs1 <= next_rs1;
+			end else if(dest_reg == next_rs1reg) begin
+				rs1 <= exmm_aluresult;
+				rs2 <= next_rs2;
+			end else if (dest_reg == next_rs2reg) begin
+				rs2 <= exmm_aluresult;
+				rs1 <= next_rs1;
+			end else begin	
+				rs1 <= next_rs1;
+				rs2 <= next_rs2;
+			end
 			immediate <= next_immediate;
 			IDEX_npc <= next_IDEX_npc;
+			rd <= next_rd;
 		end
 		regfile.gpr[0] = 0; 
 		mem_active = 0;
       end
    end
 always_comb begin
-//	if(X == 0)
-//		EXMEM_ready = 0;
-//	else
-//		EXMEM_ready = 1;
 	dest_reg = rd;
 	case(opcode)	
 		"add": begin
