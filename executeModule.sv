@@ -75,29 +75,27 @@ end
         		IDEX_npc <= IDEX_npc;
 		end else begin 
 			opcode <= next_opcode;
-			if(next_rs1reg == WBEX_rd)begin
-				rs1 <= WBEX_rdval;
-				rs2 <= next_rs2;
-			end else if(next_rs2reg == WBEX_rd) begin
-				rs2 <= WBEX_rdval;
-				rs1 <= next_rs1;
+
+			
+			immediate <= next_immediate;
+			if(dest_reg == next_rs1reg) begin
+				rs1 <= exmm_aluresult;
 			end else if(next_rs1reg == MEMEX_rd) begin
                                 rs1 <= MEMEX_rdval;
-				rs2 <= next_rs2;
-                        end else if(next_rs2reg == MEMEX_rd) begin
-                                rs2 <= MEMEX_rdval;
-				rs1 <= next_rs1;
-			end else if(dest_reg == next_rs1reg) begin
-				rs1 <= exmm_aluresult;
-				rs2 <= next_rs2;
-			end else if (dest_reg == next_rs2reg) begin
-				rs2 <= exmm_aluresult;
-				rs1 <= next_rs1;
+			end else if(next_rs1reg == WBEX_rd)begin
+				rs1 <= WBEX_rdval;
 			end else begin	
 				rs1 <= next_rs1;
+			end
+			if (dest_reg == next_rs2reg) begin
+				rs2 <= exmm_aluresult;
+                        end else if(next_rs2reg == MEMEX_rd) begin
+                                rs2 <= MEMEX_rdval;
+			end else if(next_rs2reg == WBEX_rd) begin
+				rs2 <= WBEX_rdval;
+			end else begin	
 				rs2 <= next_rs2;
 			end
-			immediate <= next_immediate;
 			IDEX_npc <= next_IDEX_npc;
 			rd <= next_rd;
 		end

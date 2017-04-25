@@ -44,7 +44,6 @@ always_ff @(posedge clk) begin
     end
     else if(EXMEM_ready == 0) begin
     	//MEMWB_ready = 0;
-                MEMEX_rdval <= exmem_aluresult; 
 		exmem_aluresult <= exmem_aluresult;
                 exmem_rd <= exmem_rd;
 
@@ -62,6 +61,9 @@ end
 always_comb begin
 	memwb_aluresult = exmem_aluresult;
 	memwb_rd = exmem_rd;
+	MEMEX_rd = exmem_rd;
+	MEMEX_rdval = exmem_aluresult;
+
 end
 
 endmodule

@@ -17,10 +17,15 @@ always_ff @(posedge clk) begin
 	end
 	else begin
 		regfile.gpr[dest_reg] <= mewb_aluresult;
-		WBEX_rdval <= regfile.gpr[dest_reg]; 
 		//i_execute.printRegister;
 	end
 end
+
+always_comb begin
+	WBEX_rdval = regfile.gpr[dest_reg]; 
+	WBEX_rd = dest_reg;
+end
+
 
 endmodule
 
