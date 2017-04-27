@@ -17,6 +17,7 @@ module executeMod
     input [5:0] WBEX_rd,
     input [63:0] WBEX_rdval,
     input [63:0] MEMEX_rdval,
+    input MEMEX_stall,
     output [63:0] target_pc,
     output branch,
     input IDEX_ready,
@@ -24,7 +25,8 @@ module executeMod
     output [5:0] dest_reg,
     output mem_active,
     output load,
-    output EXMEM_ready
+    output EXMEM_ready,
+    output EXID_stall
 );
 
 getreg gr_name();
@@ -52,10 +54,10 @@ getreg gr_name();
  always_ff @(posedge clk) begin
     if (reset) begin
     end
-    else if(IDEX_ready == 0) begin
-        EXMEM_ready <= 0;
-    end else begin
+    else if(IDEX_ready == 1 && MEMEX_stall == 0) begin
         EXMEM_ready <= 1;
+    end else begin
+        EXMEM_ready <= 0;
     end
 end
  
@@ -66,17 +68,8 @@ end
 	else begin
     		//  exmm_aluresult = immediate;
 		//$display("%0s", opcode);
-		if(IDEX_ready == 0) begin 
-       		 	opcode <= opcode;
-        		rd <= rd;
-        		rs1 <= rs1;
-        		rs2 <= rs2;
-        		immediate <= immediate;
-        		IDEX_npc <= IDEX_npc;
-		end else begin 
+		if(IDEX_ready == 1 && MEMEX_stall == 0) begin 
 			opcode <= next_opcode;
-
-			
 			immediate <= next_immediate;
 			if(dest_reg == next_rs1reg) begin
 				rs1 <= exmm_aluresult;
@@ -98,11 +91,27 @@ end
 			end
 			IDEX_npc <= next_IDEX_npc;
 			rd <= next_rd;
+		end else begin 
+       		 	opcode <= opcode;
+        		rd <= rd;
+        		rs1 <= rs1;
+        		rs2 <= rs2;
+        		immediate <= immediate;
+        		IDEX_npc <= IDEX_npc;
 		end
 		regfile.gpr[0] = 0; 
 		mem_active = 0;
       end
    end
+
+always_comb begin
+	if(MEMEX_stall == 1) begin
+		EXID_stall = 1;
+	end else begin
+		EXID_stall = 0;
+	end
+end
+
 always_comb begin
 	dest_reg = rd;
 	case(opcode)	

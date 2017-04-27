@@ -17,7 +17,8 @@ module memoryMod
     output [5:0] memwb_rd,
     output MEMWB_ready,
     output [5:0] MEMEX_rd,
-    output [63:0] MEMEX_rdval
+    output [63:0] MEMEX_rdval,
+    output MEMEX_stall
 );
 
     logic [63:0] exmem_aluresult;

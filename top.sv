@@ -58,6 +58,7 @@ fetchMod
 	
 	.EXIF_targetpc(EXIF_targetpc),
 	.EXIF_branch(EXIF_branch),
+	.IDIF_stall(IDIF_stall),
 
 //outputs
 	.pc(pc),
@@ -87,6 +88,7 @@ wire [63:0] IDEX_opcode;
 wire IDEX_ready;
 wire [5:0] IDEX_rs1reg;
 wire [5:0] IDEX_rs2reg;
+wire IDIF_stall;
 
 decodeMod
 	i_decode (
@@ -96,6 +98,7 @@ decodeMod
 	.IFID_instreg(IFID_instreg),
 	.IFID_npc(IFID_npc),
 	.IFID_ready(IFID_ready),
+	.EXID_stall(EXID_stall),
 	
 //output
 	.IDEX_ready(IDEX_ready),
@@ -106,7 +109,8 @@ decodeMod
 	.rd(IDEX_rd),
 	.immediate(IDEX_immediate),
 	.IDEX_rs1reg(IDEX_rs1reg),
-        .IDEX_rs2reg(IDEX_rs2reg)
+        .IDEX_rs2reg(IDEX_rs2reg),
+        .IDIF_stall(IDIF_stall)
 //	.pcint(pcint)
 	);
 
@@ -116,6 +120,7 @@ wire [5:0] EXMEM_rd;
 wire EXMEM_ready;
 wire mem_active;
 wire load;
+wire EXID_stall;
 
 executeMod
 i_execute
@@ -133,9 +138,10 @@ i_execute
     .next_IDEX_npc(IDEX_npc),
     .IDEX_ready(IDEX_ready),
     .MEMEX_rd(MEMEX_rd),
-    .WBEX_rd(WBEX_ed),
+    .WBEX_rd(WBEX_rd),
     .MEMEX_rdval(MEMEX_rdval),
     .WBEX_rdval(WBEX_rdval),
+    .MEMEX_stall(MEMEX_stall),
 //outputs
     .EXMEM_ready(EXMEM_ready),
     .mem_active(mem_active),
@@ -143,7 +149,8 @@ i_execute
     .dest_reg(EXMEM_rd),
     .exmm_aluresult(EXMEM_aluresult),
     .target_pc(EXIF_targetpc),
-    .branch(EXIF_branch)
+    .branch(EXIF_branch),
+    .EXID_stall(EXID_stall)
 );
 
 
@@ -153,6 +160,7 @@ i_execute
     wire MEMWB_ready;
     wire [5:0] MEMEX_rd;
     wire [63:0] MEMEX_rdval;
+    wire MEMEX_stall;
 
 memoryMod
 i_memory
@@ -174,7 +182,8 @@ i_memory
     .memwb_rd(MEMWB_rd),
     .MEMWB_ready(MEMWB_ready),
     .MEMEX_rd(MEMEX_rd),
-    .MEMEX_rdval(MEMEX_rdval)
+    .MEMEX_rdval(MEMEX_rdval),
+    .MEMEX_stall(MEMEX_stall)
 );
 
 wire [5:0] WBEX_rd;

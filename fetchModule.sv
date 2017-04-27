@@ -26,7 +26,8 @@ module fetchMod
   input  [BUS_DATA_WIDTH-1:0] bus_resp,
   input  [BUS_TAG_WIDTH-1:0] bus_resptag,
   input  [63:0] EXIF_targetpc,
-  input  EXIF_branch 
+  input  EXIF_branch, 
+  input  IDIF_stall
 );
 
 cache
@@ -68,7 +69,7 @@ end
 		pc <= entry;
 	end
 	else begin
-		if(data_ack == 1) begin
+		if(data_ack == 1 && IDIF_stall == 0) begin
         		if(instr_reg == 8'h00) begin
 				i_execute.printRegister;
 				$finish;

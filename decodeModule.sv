@@ -5,6 +5,7 @@ input reset,
 input [31:0] IFID_instreg,
 input [63:0] IFID_npc,
 input IFID_ready,
+input EXID_stall,
 output [63:0] IDEX_npc,
 output [64:0] opcode,
 output signed [63:0] rs1,
@@ -13,7 +14,8 @@ output signed [5:0] rd,
 output signed [19:0] immediate,
 output IDEX_ready,
 output [5:0] IDEX_rs1reg,
-output [5:0] IDEX_rs2reg
+output [5:0] IDEX_rs2reg,
+output IDIF_stall
 //output signed [64:0] pcint
 );
 
@@ -34,22 +36,25 @@ always_ff @(posedge clk) begin
 		immediate = 0;
 	//	pcint = 0;
 	end else begin
-		if (IFID_ready == 0) begin
+		if (IFID_ready == 1 && EXID_stall == 0) begin
+			instr_reg <= IFID_instreg;
+			IDEX_ready <= 1;
+		end
+		else begin
 			IDEX_ready <= 0;
 			instr_reg <= instr_reg;
 		end
-		else begin
-			//opcode = "null";
-			//rs1 = 0;
-			//rs2 = 0;
-			//rd = 0;
-			//immediate = 0;
-			instr_reg <= IFID_instreg;
-			IDEX_ready <= 1;
-			//$display("%s, %x, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);
-		end
 	end
 end
+
+always_comb begin
+	if(EXID_stall == 1) begin
+		IDIF_stall = 1;
+	end else begin
+		IDIF_stall = 0;
+	end
+end
+
 always_comb begin
 		 if(instr_reg == 8'h00) begin
                 	//i_execute.printRegister;
