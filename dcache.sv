@@ -26,7 +26,9 @@ input load, //request is read or write 1-read, 0-write
 input [63:0] in_addr, //aluresult from Execute
 //input [63:0] in_data,	//RS2 value
 output [63:0] memwb_loadeddata,
-output load_str_done
+output load_str_done,
+output MEMEX_stall,
+output dataselect
 
 
 
@@ -40,6 +42,7 @@ logic [511:0] Set2data [511:0];
 logic [48:0] Set2tag [511:0];
 logic Set1dirty [511:0];
 logic Set2dirty [511:0];
+
 
 logic [63:0] cacheLineAddress;
 
@@ -57,31 +60,38 @@ enum {memoryRequest=2'b10, memoryWaiting=2'b00, memoryReading=2'b01, memoryIdle=
 
 //logic to check whether a tag is present in the cache, if yes->cache_hit, o.w. cache_miss
 always_comb begin
+	if (mem_active == 1 ) begin
+		if (((in_addr[63:15]==Set1tag[in_addr[14:6]]) || (in_addr[63:15]==Set2tag[in_addr[14:6]])) && memoryState == memoryIdle) begin
 
-	if (((in_addr[63:15]==Set1tag[in_addr[14:6]]) || (in_addr[63:15]==Set2tag[in_addr[14:6]])) && memoryState == memoryIdle) begin
-
-		if (in_addr[63:15]==Set1tag[in_addr[14:6]] ) begin
-			hitCacheLine = Set1data[in_addr[14:6]];
+			if (in_addr[63:15]==Set1tag[in_addr[14:6]] ) begin
+				hitCacheLine = Set1data[in_addr[14:6]];
+			end else begin
+				hitCacheLine = Set2data[in_addr[14:6]];
+			end
+			tempLD = (ALLONES << (in_addr[5:3] * 64)) & hitCacheLine;
+			//$display("our expression = %x", (ALLONES << (in_addr[5:2] * 32)));
+			//$display("cacheLine      = %x", data[in_addr[14:6]]);
+			//$display("tempIR         = %x", tempIR);
+			memwb_loadeddata = tempLD >> (in_addr[5:3] * 64);
+			//$display("instr_reg         = %x", instr_reg);	
+			cache_hit = 1;
+			dataselect = 1;
+			MEMEX_stall = 0;
+			//load_str_done = 1;
+		
+			//instr_reg = (in_addr[5])?data[in_addr[14:6]][63:32]:data[in_addr[14:6]][31:0];
+			//BO =  in_addr[5:2]; 
+			//instr_reg = data[in_addr[14:6]][];
 		end else begin
-			hitCacheLine = Set2data[in_addr[14:6]];
+			//load_str_done = 0;
+			cache_hit = 0;	//to start memory fetch
+			MEMEX_stall = 1;	
+			//instr_reg = 0;
 		end
-		tempLD = (ALLONES << (in_addr[5:3] * 64)) & hitCacheLine;
-//			$display("our expression = %x", (ALLONES << (in_addr[5:2] * 32)));
-//			$display("cacheLine      = %x", data[in_addr[14:6]]);
-//			$display("tempIR         = %x", tempIR);
-		memwb_loadeddata = tempLD >> (in_addr[5:3] * 64);
-//			$display("instr_reg         = %x", instr_reg);	
-		cache_hit = 1;
-		load_str_done = 1;
-		
-		//instr_reg = (in_addr[5])?data[in_addr[14:6]][63:32]:data[in_addr[14:6]][31:0];
-	//	BO =  in_addr[5:2]; 
-		//instr_reg = data[in_addr[14:6]][];
 	end else begin
-		load_str_done = 0;
-		cache_hit = 0;
-		
-		//instr_reg = 0;
+		MEMEX_stall = 0;
+		dataselect = 0;
+		cache_hit = 1;
 	end
 end
 
@@ -133,7 +143,7 @@ always_ff @(posedge clk) begin
 		next_memoryState = memoryIdle;
 		missCacheLine <= 0;
 	end
-	if(cache_hit==0 && memoryState == memoryIdle && !reset) begin
+	if(cache_hit==0 && memoryState == memoryIdle  && !reset) begin
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
                         bus_respack <= 0;
                         bus_req <= in_addr;

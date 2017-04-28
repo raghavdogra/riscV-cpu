@@ -99,8 +99,6 @@ end
         		immediate <= immediate;
         		IDEX_npc <= IDEX_npc;
 		end
-		regfile.gpr[0] = 0; 
-		mem_active = 0;
       end
    end
 
@@ -114,7 +112,53 @@ end
 
 always_comb begin
 	dest_reg = rd;
+	mem_active = 0;
+	load = 0;
 	case(opcode)	
+	    	"lb": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		      end
+                "lh": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		      end
+                "lw": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		      end
+                "lbu": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		       end
+                "lhu": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+                       end
+	    	"ld": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+			load = 1;
+                      end
+		"lwu": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		       end
+		"sb": begin
+			mem_active = 1;
+		      end
+                "sh": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		      end
+                "sw": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		      end
+                "sd": begin
+			exmm_aluresult = rs1 + immediate;
+			mem_active = 1;
+		      end
 		"add": begin
 			exmm_aluresult = rs1 + rs2;
 			end

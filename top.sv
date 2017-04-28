@@ -161,6 +161,7 @@ i_execute
     wire [5:0] MEMEX_rd;
     wire [63:0] MEMEX_rdval;
     wire MEMEX_stall;
+    wire dataselect;
 
 memoryMod
 #(              
@@ -188,6 +189,7 @@ i_memory
     .MEMEX_rd(MEMEX_rd),
     .MEMEX_rdval(MEMEX_rdval),
     .MEMEX_stall(MEMEX_stall),
+    .dataselect(dataselect),
 
 //bus interface
         .bus_reqcyc(bus_reqcyc),
@@ -210,9 +212,11 @@ i_writeback
 	.clk(clk),
 	.reset(reset),
 	.dest_reg(MEMWB_rd),
+	.dataselect(dataselect),
 	.mewb_aluresult(MEMWB_aluresult),
 	.MEMWB_ready(MEMWB_ready),
 	.WBEX_rd(WBEX_rd),
+	.memwb_loadeddata(MEMWB_loadeddata),
 	.WBEX_rdval(WBEX_rdval)
 );
 

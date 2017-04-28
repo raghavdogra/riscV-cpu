@@ -1,6 +1,6 @@
 .PHONY: all run clean submit
 
-RUNELF=/shared/cse502/tests/wp2/prog2.o
+RUNELF=/home/rdogra/sample.o
 
 TRACE=--trace
 
