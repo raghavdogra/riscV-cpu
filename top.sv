@@ -41,7 +41,6 @@ wire IFID_ready;
 wire [63:0] pc;
 wire [63:0] IFID_npc;
 wire [63:0] EXIF_targetpc;
-wire EXIF_branch;
 wire signed [64:0] pcint;
 fetchMod
 #(
@@ -96,9 +95,10 @@ decodeMod
 	.clk(clk),
 	.reset(reset),
 	.IFID_instreg(IFID_instreg),
-	.IFID_npc(IFID_npc),
+	.IFID_npc(pc),
 	.IFID_ready(IFID_ready),
 	.EXID_stall(EXID_stall),
+	.EXIF_branch(EXIF_branch),
 	
 //output
 	.IDEX_ready(IDEX_ready),
@@ -121,6 +121,8 @@ wire EXMEM_ready;
 wire mem_active;
 wire load;
 wire EXID_stall;
+wire EXIF_branch;
+
 
 executeMod
 i_execute

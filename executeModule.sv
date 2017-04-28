@@ -69,28 +69,37 @@ end
     		//  exmm_aluresult = immediate;
 		//$display("%0s", opcode);
 		if(IDEX_ready == 1 && MEMEX_stall == 0) begin 
-			opcode <= next_opcode;
-			immediate <= next_immediate;
-			if(dest_reg == next_rs1reg) begin
-				rs1 <= exmm_aluresult;
-			end else if(next_rs1reg == MEMEX_rd) begin
-                                rs1 <= MEMEX_rdval;
-			end else if(next_rs1reg == WBEX_rd)begin
-				rs1 <= WBEX_rdval;
-			end else begin	
-				rs1 <= next_rs1;
+			if(branch == 0) begin
+				opcode <= next_opcode;
+				immediate <= next_immediate;
+				if(dest_reg == next_rs1reg) begin
+					rs1 <= exmm_aluresult;
+				end else if(next_rs1reg == MEMEX_rd) begin
+                                	rs1 <= MEMEX_rdval;
+				end else if(next_rs1reg == WBEX_rd)begin
+					rs1 <= WBEX_rdval;
+				end else begin	
+					rs1 <= next_rs1;
+				end
+				if (dest_reg == next_rs2reg) begin
+					rs2 <= exmm_aluresult;
+                        	end else if(next_rs2reg == MEMEX_rd) begin
+                                	rs2 <= MEMEX_rdval;
+				end else if(next_rs2reg == WBEX_rd) begin
+					rs2 <= WBEX_rdval;
+				end else begin	
+					rs2 <= next_rs2;
+				end
+				IDEX_npc <= next_IDEX_npc;
+				rd <= next_rd;
+			end else begin
+				opcode <= "addi";
+				rs1 <= 0;
+				rs2 <= 0;
+				rd <= 0;
+				immediate <=0; 
+				IDEX_npc <= next_IDEX_npc;
 			end
-			if (dest_reg == next_rs2reg) begin
-				rs2 <= exmm_aluresult;
-                        end else if(next_rs2reg == MEMEX_rd) begin
-                                rs2 <= MEMEX_rdval;
-			end else if(next_rs2reg == WBEX_rd) begin
-				rs2 <= WBEX_rdval;
-			end else begin	
-				rs2 <= next_rs2;
-			end
-			IDEX_npc <= next_IDEX_npc;
-			rd <= next_rd;
 		end else begin 
        		 	opcode <= opcode;
         		rd <= rd;
@@ -112,6 +121,7 @@ end
 
 always_comb begin
 	dest_reg = rd;
+	branch = 0;
 	mem_active = 0;
 	load = 0;
 	case(opcode)	
@@ -159,6 +169,22 @@ always_comb begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 		      end
+		"blt": begin
+				if(rs1 < rs2) begin
+					branch = 1;
+					target_pc = IDEX_npc + immediate;
+				end else begin
+					branch = 0;
+				end
+			end	
+		"bge": begin
+				if(rs1 > rs2) begin
+					branch = 1;
+					target_pc = IDEX_npc + immediate;
+				end else begin
+					branch = 0;
+				end
+			end	
 		"add": begin
 			exmm_aluresult = rs1 + rs2;
 			end

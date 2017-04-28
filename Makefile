@@ -1,6 +1,6 @@
 .PHONY: all run clean submit
 
-RUNELF=/home/rdogra/sample.o
+RUNELF=/home/mjadhav/cse502finalproject/sample.o
 
 TRACE=--trace
 

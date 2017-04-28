@@ -61,7 +61,12 @@ logic [63:0] npc;
   end
 
 always_comb begin
-    npc = pc + 4'h4;
+    if(EXIF_branch == 0) begin
+	npc = pc + 4'h4;
+    end else begin
+	npc = EXIF_targetpc;
+	$display("Got Target PC, %x", npc);
+    end
 end
 
   always_ff @ (posedge clk) begin
@@ -74,8 +79,9 @@ end
 				i_execute.printRegister;
 				$finish;
 			end
-		//	$display("Instruction Register %x",instr_reg);
 			pc <= npc;
+			
+			$display("PC,%x  npc %x",pc,npc);
 		end
 	//	else
 	//		instr_reg = 8'hFF;

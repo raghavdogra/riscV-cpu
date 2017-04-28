@@ -11,6 +11,7 @@ li	a6,2
 li	a7,1
 mv	t3,s0
 mv	t1,s1
+bge	a1,a0,16000
 addw	t1,t3,t1
 addw	a0,t1,a0
 addw	a1,a0,a1

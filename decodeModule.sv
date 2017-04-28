@@ -6,6 +6,7 @@ input [31:0] IFID_instreg,
 input [63:0] IFID_npc,
 input IFID_ready,
 input EXID_stall,
+input EXIF_branch,
 output [63:0] IDEX_npc,
 output [64:0] opcode,
 output signed [63:0] rs1,
@@ -50,12 +51,18 @@ always_ff @(posedge clk) begin
 	//	pcint = 0;
 	end else begin
 		if (IFID_ready == 1 && EXID_stall == 0) begin
-			instr_reg <= IFID_instreg;
+			if(EXIF_branch == 1) begin
+				instr_reg <=  32'h00000013;
+			end else begin
+				instr_reg <= IFID_instreg;
+			end
+			IDEX_npc <= IFID_npc;
 		//	IDEX_ready <= 1;
 		end
 		else begin
 		//	IDEX_ready <= 0;
 			instr_reg <= instr_reg;
+			IDEX_npc <= IDEX_npc;
 		end
 	end
 end
@@ -144,7 +151,6 @@ always_comb begin
                         IDEX_rs2reg = 0;
                	 	immediate = temp;
        		end else if (instr_reg[6:0] == 7'b1100011) begin
-                	temp_addr = {instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0}; 
                 	//address = pcint + temp_addr;
                 	case (instr_reg[14:12])
                         	3'b000: opcode = "beq";
@@ -154,6 +160,13 @@ always_comb begin
                         	3'b110: opcode = "bltu";
                         	3'b111: opcode = "bgeu";
                		endcase
+			rd = 0;
+                        rs1 = regfile.gpr[instr_reg[19:15]];
+                        rs2 = regfile.gpr[instr_reg[24:20]];
+                        IDEX_rs1reg = instr_reg[19:15];
+                        IDEX_rs2reg = instr_reg[24:20];
+                        immediate = {instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0}; 
+
         	end else if (instr_reg[6:0]  == 7'b0100011) begin
                 	temp = {instr_reg[31:25],instr_reg[11:7]}; 
 			case (instr_reg[14:12])
