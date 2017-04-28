@@ -54,7 +54,7 @@ getreg gr_name();
  always_ff @(posedge clk) begin
     if (reset) begin
     end
-    else if(IDEX_ready == 1 && MEMEX_stall == 0) begin
+    else if(IDEX_ready == 1) begin
         EXMEM_ready <= 1;
     end else begin
         EXMEM_ready <= 0;

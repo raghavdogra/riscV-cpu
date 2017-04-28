@@ -27,6 +27,19 @@ logic [31:0] instr_reg;
 //logic X;
 
 
+
+always_ff @(posedge clk) begin
+	if (reset) begin
+	end else begin
+		if (IFID_ready == 0) begin
+			IDEX_ready <= 0;
+		end else begin
+			IDEX_ready <=1;
+		end
+	end
+end
+
+
 always_ff @(posedge clk) begin
 	if(reset) begin
 		opcode = 0;
@@ -38,10 +51,10 @@ always_ff @(posedge clk) begin
 	end else begin
 		if (IFID_ready == 1 && EXID_stall == 0) begin
 			instr_reg <= IFID_instreg;
-			IDEX_ready <= 1;
+		//	IDEX_ready <= 1;
 		end
 		else begin
-			IDEX_ready <= 0;
+		//	IDEX_ready <= 0;
 			instr_reg <= instr_reg;
 		end
 	end
