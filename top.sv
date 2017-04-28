@@ -163,13 +163,17 @@ i_execute
     wire MEMEX_stall;
 
 memoryMod
+#(              
+                .BUS_DATA_WIDTH(64),
+                .BUS_TAG_WIDTH(13)
+)
 i_memory
 (
 //inputs
     .clk(clk),
     .reset(reset),
-    .mem_active(mem_active),
-    .load(load),
+    .next_mem_active(mem_active),
+    .next_load(load),
     .next_exmem_aluresult(EXMEM_aluresult),
     .next_exmem_rd(EXMEM_rd),
     //.exmem_rs2(rs2),
@@ -183,7 +187,19 @@ i_memory
     .MEMWB_ready(MEMWB_ready),
     .MEMEX_rd(MEMEX_rd),
     .MEMEX_rdval(MEMEX_rdval),
-    .MEMEX_stall(MEMEX_stall)
+    .MEMEX_stall(MEMEX_stall),
+
+//bus interface
+        .bus_reqcyc(bus_reqcyc),
+        .bus_req   (bus_req),
+        .bus_reqtag(bus_reqtag),
+        .bus_reqack(bus_reqack),
+
+        .bus_respcyc(bus_respcyc),
+        .bus_resp  (bus_resp),
+        .bus_resptag(bus_resptag),
+        .bus_respack(bus_respack)
+
 );
 
 wire [5:0] WBEX_rd;

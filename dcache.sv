@@ -21,11 +21,14 @@ input [63:0] stackptr,
   input  [BUS_TAG_WIDTH-1:0] bus_resptag,
 
 //interface to the core
-input read, //request is read or write 1-read, 0-write
+input mem_active,
+input load, //request is read or write 1-read, 0-write
 input [63:0] in_addr, //aluresult from Execute
-input [63:0] in_data,	//RS2 value
-output [63:0] loaded_data,
+//input [63:0] in_data,	//RS2 value
+output [63:0] memwb_loadeddata,
 output load_str_done
+
+
 
 );
 
@@ -66,7 +69,7 @@ always_comb begin
 //			$display("our expression = %x", (ALLONES << (in_addr[5:2] * 32)));
 //			$display("cacheLine      = %x", data[in_addr[14:6]]);
 //			$display("tempIR         = %x", tempIR);
-		loaded_data = tempLD >> (in_addr[5:3] * 64);
+		memwb_loadeddata = tempLD >> (in_addr[5:3] * 64);
 //			$display("instr_reg         = %x", instr_reg);	
 		cache_hit = 1;
 		load_str_done = 1;
