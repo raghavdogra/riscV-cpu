@@ -27,6 +27,7 @@ module memoryMod
    // input signed [63:0] exmem_rs2,
     input [63:0] target_pc,
     input EXMEM_ready,
+    input EXMEM_rs2,
 
     output [63:0] memwb_aluresult,
     output [63:0] memwb_loadeddata,
@@ -42,6 +43,7 @@ module memoryMod
     logic [5:0] exmem_rd;
     logic loadread;
     logic mem_active;
+    logic in_data;
 
 dcache
 #(
@@ -69,7 +71,7 @@ i_dcache
   .mem_active(mem_active),
   .load(loadread), //request is read or write 1-read, 0-write
   .in_addr(exmem_aluresult), //aluresult from Execute
-  //.in_data(in_data),   //RS2 value
+  .in_data(in_data),   //RS2 value
 
 //cache output
   .memwb_loadeddata(memwb_loadeddata),
@@ -109,6 +111,7 @@ always_ff @(posedge clk) begin
                 exmem_rd <= exmem_rd;
 		loadread <= loadread;
 		mem_active <= mem_active;
+		in_data <= in_data;
     end else begin
 	//MEMWB_ready =1;
 		if (MEMEX_stall == 0) begin
@@ -116,8 +119,10 @@ always_ff @(posedge clk) begin
                 	exmem_rd <= next_exmem_rd;
 			loadread <= next_load;
 			mem_active <= next_mem_active;
+			in_data <= EXMEM_rs2;
 		end else begin
 			exmem_aluresult <= exmem_aluresult;
+			in_data <= in_data;
                 	exmem_rd <= exmem_rd;
 			loadread <= loadread;
 			mem_active <= mem_active;

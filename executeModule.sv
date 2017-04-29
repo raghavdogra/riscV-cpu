@@ -22,6 +22,7 @@ module executeMod
     output branch,
     input IDEX_ready,
     output [63:0] exmm_aluresult,
+    output [63:0] EXMEM_rs2,
     output [5:0] dest_reg,
     output mem_active,
     output load,
@@ -124,6 +125,7 @@ always_comb begin
 	branch = 0;
 	mem_active = 0;
 	load = 0;
+	EXMEM_rs2 = rs2;
 	case(opcode)	
 	    	"lb": begin
 			exmm_aluresult = rs1 + immediate;

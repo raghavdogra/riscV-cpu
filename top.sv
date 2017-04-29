@@ -40,7 +40,6 @@ wire [31:0] IFID_instreg;
 wire IFID_ready;
 wire [63:0] pc;
 wire [63:0] IFID_npc;
-wire [63:0] EXIF_targetpc;
 wire signed [64:0] pcint;
 fetchMod
 #(
@@ -117,11 +116,13 @@ decodeMod
 
 wire [63:0]EXMEM_aluresult;
 wire [5:0] EXMEM_rd;
+wire [63:0] EXMEM_rs2;
 wire EXMEM_ready;
 wire mem_active;
 wire load;
 wire EXID_stall;
 wire EXIF_branch;
+wire [63:0] EXIF_targetpc;
 
 
 executeMod
@@ -149,6 +150,7 @@ i_execute
     .mem_active(mem_active),
     .load(load),
     .dest_reg(EXMEM_rd),
+    .EXMEM_rs2(EXMEM_rs2),
     .exmm_aluresult(EXMEM_aluresult),
     .target_pc(EXIF_targetpc),
     .branch(EXIF_branch),
@@ -179,8 +181,8 @@ i_memory
     .next_load(load),
     .next_exmem_aluresult(EXMEM_aluresult),
     .next_exmem_rd(EXMEM_rd),
-    //.exmem_rs2(rs2),
-    .target_pc(EXIM_targetpc),
+    .EXMEM_rs2(EXMEM_rs2),
+    .target_pc(EXIF_targetpc),
     .EXMEM_ready(EXMEM_ready),
 
 //outputs
