@@ -2,7 +2,7 @@ module dcache
 #(
   BUS_TAG_WIDTH = 13,
   BUS_DATA_WIDTH = 64, 
-  ALLONES = 512'hFFFFFFFF
+  ALLONES = 512'hFFFFFFFFFFFFFFFF
 )
 (
   input  clk,
