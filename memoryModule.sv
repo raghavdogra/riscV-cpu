@@ -27,8 +27,10 @@ module memoryMod
    // input signed [63:0] exmem_rs2,
     input [63:0] target_pc,
     input EXMEM_ready,
-    input EXMEM_rs2,
+    input [63:0] EXMEM_rs2,
+    input EXMEM_wbactive,
 
+    output MEMWB_wbactive,
     output [63:0] memwb_aluresult,
     output [63:0] memwb_loadeddata,
     output [5:0] memwb_rd,
@@ -43,7 +45,7 @@ module memoryMod
     logic [5:0] exmem_rd;
     logic loadread;
     logic mem_active;
-    logic in_data;
+    logic [63:0]in_data;
 
 dcache
 #(
@@ -80,6 +82,7 @@ i_dcache
   .dataselect(dataselect)
 );
 logic mymemwb_ready;
+logic mymemwb_wbactive;
 
 always_ff @(posedge clk) begin
     if (reset) begin
@@ -92,6 +95,20 @@ always_ff @(posedge clk) begin
 end
 end
 
+always_ff @(posedge clk) begin
+    if (reset) begin
+    end
+    else if(EXMEM_wbactive == 0) begin
+        mymemwb_wbactive <= 0;
+
+    end else begin
+        mymemwb_wbactive <= 1;
+end
+end
+
+always_comb begin
+	MEMWB_wbactive = mymemwb_wbactive;
+end
 
 always_comb begin
 	if (MEMEX_stall == 1) begin
@@ -112,6 +129,7 @@ always_ff @(posedge clk) begin
 		loadread <= loadread;
 		mem_active <= mem_active;
 		in_data <= in_data;
+   		mymemwb_wbactive <= mymemwb_wbactive;
     end else begin
 	//MEMWB_ready =1;
 		if (MEMEX_stall == 0) begin
@@ -120,8 +138,10 @@ always_ff @(posedge clk) begin
 			loadread <= next_load;
 			mem_active <= next_mem_active;
 			in_data <= EXMEM_rs2;
+   			mymemwb_wbactive <= EXMEM_wbactive;
 		end else begin
 			exmem_aluresult <= exmem_aluresult;
+   			mymemwb_wbactive <= mymemwb_wbactive;
 			in_data <= in_data;
                 	exmem_rd <= exmem_rd;
 			loadread <= loadread;

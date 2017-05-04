@@ -113,7 +113,7 @@ decodeMod
 //	.pcint(pcint)
 	);
 
-
+wire EXMEM_wbactive;
 wire [63:0]EXMEM_aluresult;
 wire [5:0] EXMEM_rd;
 wire [63:0] EXMEM_rs2;
@@ -154,10 +154,11 @@ i_execute
     .exmm_aluresult(EXMEM_aluresult),
     .target_pc(EXIF_targetpc),
     .branch(EXIF_branch),
-    .EXID_stall(EXID_stall)
+    .EXID_stall(EXID_stall),
+    .EXMEM_wbactive(EXMEM_wbactive)
 );
 
-
+    wire MEMWB_wbactive;
     wire [63:0] MEMWB_aluresult;
     wire [63:0] MEMWB_loadeddata;
     wire [5:0] MEMWB_rd;
@@ -184,6 +185,7 @@ i_memory
     .EXMEM_rs2(EXMEM_rs2),
     .target_pc(EXIF_targetpc),
     .EXMEM_ready(EXMEM_ready),
+    .EXMEM_wbactive(EXMEM_wbactive),
 
 //outputs
     .memwb_aluresult(MEMWB_aluresult),
@@ -194,6 +196,7 @@ i_memory
     .MEMEX_rdval(MEMEX_rdval),
     .MEMEX_stall(MEMEX_stall),
     .dataselect(dataselect),
+    .MEMWB_wbactive(MEMWB_wbactive),
 
 //bus interface
         .bus_reqcyc(bus_reqcyc),
@@ -216,6 +219,7 @@ i_writeback
 	.clk(clk),
 	.reset(reset),
 	.dest_reg(MEMWB_rd),
+	.MEMWB_wbactive(MEMWB_wbactive),
 	.dataselect(dataselect),
 	.mewb_aluresult(MEMWB_aluresult),
 	.MEMWB_ready(MEMWB_ready),

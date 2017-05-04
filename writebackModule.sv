@@ -6,6 +6,7 @@ input [5:0] dest_reg,
 input [63:0] mewb_aluresult,
 input [63:0] memwb_loadeddata,
 input dataselect,
+input MEMWB_wbactive,
 input MEMWB_ready,
 output [5:0] WBEX_rd,
 output [63:0] WBEX_rdval
@@ -18,11 +19,13 @@ always_ff @(posedge clk) begin
 	else if(MEMWB_ready == 0) begin
 	end
 	else begin
-	if (dataselect == 0) begin
-		regfile.gpr[dest_reg] <= mewb_aluresult;
-		//i_execute.printRegister;
-	end else begin
-		regfile.gpr[dest_reg] <= memwb_loadeddata;	
+	if (MEMWB_wbactive == 1) begin
+		if (dataselect == 0) begin
+			regfile.gpr[dest_reg] <= mewb_aluresult;
+			//i_execute.printRegister;
+		end else begin
+			regfile.gpr[dest_reg] <= memwb_loadeddata;	
+		end
 	end
 end
 end

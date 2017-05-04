@@ -45,6 +45,8 @@ logic Set2dirty [511:0];
 
 
 logic [63:0] cacheLineAddress;
+logic [63:0] prev_in_addr;
+logic writeback;
 
 logic [511:0] hitCacheLine;
 logic [511:0] missCacheLine;
@@ -78,6 +80,7 @@ always_comb begin
 				cache_hit = 1;
 				dataselect = 1;
 				MEMEX_stall = 0;
+				writeback = 0;
 				//load_str_done = 1;
 			
 				//instr_reg = (in_addr[5])?data[in_addr[14:6]][63:32]:data[in_addr[14:6]][31:0];
@@ -91,7 +94,9 @@ always_comb begin
 				//writing the 8 bytes of in_data to the desired location
 				tempLD = in_data << (in_addr[5:3] * 64);
 				hitCacheLine = hitCacheLine | tempLD;
-				
+				prev_in_addr = in_addr;
+				writeback = 1;
+
 				cache_hit = 1;
 				dataselect = 0;
 				MEMEX_stall = 0;
@@ -102,12 +107,34 @@ always_comb begin
 			MEMEX_stall = 1;	
 			dataselect = 0;
 			//instr_reg = 0;
+			writeback = 0;
 		end
 	end else begin //not a memory instruction
 		MEMEX_stall = 0;
 		dataselect = 0;
 		cache_hit = 1;
+		writeback = 0;
 	end
+end
+
+
+
+always_ff @(posedge clk) begin
+	if (writeback == 1) begin
+			if (prev_in_addr[63:15]==Set1tag[prev_in_addr[14:6]] ) begin
+				$display(" writing using Set 1");
+				Set1data[prev_in_addr[14:6]] <= hitCacheLine;
+				Set1tag[prev_in_addr[14:6]] <= prev_in_addr[63:15];
+				Set1dirty[prev_in_addr[14:6]] <= 1;
+			end else begin
+				$display(" writing using Set 2");
+				$display("hcl= %x ",hitCacheLine);
+				Set2data[prev_in_addr[14:6]] <= hitCacheLine;
+				Set2tag[prev_in_addr[14:6]] <= prev_in_addr[63:15];
+				Set2dirty[prev_in_addr[14:6]] <= 1;
+			end
+	
+	end			
 end
 
 
@@ -144,17 +171,6 @@ end
                 if ({bus_reqack,bus_respcyc} == 2'bx0) begin
                         next_memoryState = memoryIdle;
 		
-			if (($random()<0)) begin
-				$display("using Set 1");
-				Set1data[in_addr[14:6]] = missCacheLine;
-				Set1tag[in_addr[14:6]] = in_addr[63:15];
-				Set1dirty[in_addr[14:6]] = 0;
-			end else begin
-				$display("using Set 2");
-				Set2data[in_addr[14:6]] = missCacheLine;
-				Set2tag[in_addr[14:6]] = in_addr[63:15];
-				Set2dirty[in_addr[14:6]] = 0;
-			end
                 end
         end
 	memoryIdle: begin
@@ -191,6 +207,23 @@ always_ff @(posedge clk) begin
 	//	end
 	end
 	if (memoryState == memoryReading && next_memoryState == memoryIdle) begin
+			if (($random()<0)) begin
+				$display("using Set 1");
+//				if(Set1dirty[in_addr[14:6]] == 0) begin
+					Set1data[in_addr[14:6]] <= missCacheLine;
+					Set1tag[in_addr[14:6]] <= in_addr[63:15];
+					Set1dirty[in_addr[14:6]] <= 0;
+//				end
+			end else begin
+				$display("using Set 2");
+//				if(Set2dirty[in_addr[14:6]] == 0) begin
+					Set2data[in_addr[14:6]] <= missCacheLine;
+					Set2tag[in_addr[14:6]] <= in_addr[63:15];
+					Set2dirty[in_addr[14:6]] <= 0;
+//				end else begin
+//					dirtyWriteback <= 1;
+//					dirtyCacheLine <= Set2data[in_addr[14:6]];
+			end
 	end
 end
 
@@ -202,6 +235,21 @@ always_ff @(posedge clk) begin
         end     
 	
 end
+/*
+always_comb begin
+
+	nextdirtyWriteback = dirtyWriteback;
+end
+
+always_ff @(posedge clk) begin
+        if (nextdirtyWriteback == 1 && dirtyWBstage == 0) begin
+		dirtyWBstage <= 1;
+		cyclecount <= 1;
+	end
+	 
+
+end
+*/
 initial begin
 int i;
 for (i = 0; i < 512; i = i +1) begin

@@ -27,6 +27,7 @@ module executeMod
     output mem_active,
     output load,
     output EXMEM_ready,
+    output EXMEM_wbactive,
     output EXID_stall
 );
 
@@ -69,6 +70,7 @@ end
 	else begin
     		//  exmm_aluresult = immediate;
 		//$display("%0s", opcode);
+		regfile.gpr[0] <= 0;
 		if(IDEX_ready == 1 && MEMEX_stall == 0) begin 
 			if(branch == 0) begin
 				opcode <= next_opcode;
@@ -125,27 +127,33 @@ always_comb begin
 	branch = 0;
 	mem_active = 0;
 	load = 0;
+	EXMEM_wbactive = 1;
 	EXMEM_rs2 = rs2;
 	case(opcode)	
 	    	"lb": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			load = 1;
 		      end
                 "lh": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			load = 1;
 		      end
                 "lw": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			load = 1;
 		      end
                 "lbu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			load = 1;
 		       end
                 "lhu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			load = 1;
                        end
 	    	"ld": begin
 			exmm_aluresult = rs1 + immediate;
@@ -155,23 +163,29 @@ always_comb begin
 		"lwu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			load = 1;
 		       end
 		"sb": begin
 			mem_active = 1;
+			EXMEM_wbactive = 0;
 		      end
                 "sh": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			EXMEM_wbactive = 0;
 		      end
                 "sw": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			EXMEM_wbactive = 0;
 		      end
                 "sd": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
+			EXMEM_wbactive = 0;
 		      end
 		"blt": begin
+			EXMEM_wbactive = 0;
 				if(rs1 < rs2) begin
 					branch = 1;
 					target_pc = IDEX_npc + immediate;
@@ -180,6 +194,7 @@ always_comb begin
 				end
 			end	
 		"bge": begin
+			EXMEM_wbactive = 0;
 				if(rs1 > rs2) begin
 					branch = 1;
 					target_pc = IDEX_npc + immediate;
