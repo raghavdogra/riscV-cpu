@@ -18,6 +18,8 @@ module executeMod
     input [63:0] WBEX_rdval,
     input [63:0] MEMEX_rdval,
     input MEMEX_stall,
+    input MEMEX_wbactive,
+    input WBEX_wbactive,
     output [63:0] target_pc,
     output branch,
     input IDEX_ready,
@@ -75,20 +77,20 @@ end
 			if(branch == 0) begin
 				opcode <= next_opcode;
 				immediate <= next_immediate;
-				if(dest_reg == next_rs1reg) begin
+				if(dest_reg == next_rs1reg && EXMEM_wbactive == 1) begin
 					rs1 <= exmm_aluresult;
-				end else if(next_rs1reg == MEMEX_rd) begin
+				end else if(next_rs1reg == MEMEX_rd && MEMEX_wbactive == 1) begin
                                 	rs1 <= MEMEX_rdval;
-				end else if(next_rs1reg == WBEX_rd)begin
+				end else if(next_rs1reg == WBEX_rd && WBEX_wbactive == 1)begin
 					rs1 <= WBEX_rdval;
 				end else begin	
 					rs1 <= next_rs1;
 				end
-				if (dest_reg == next_rs2reg) begin
+				if (dest_reg == next_rs2reg && EXMEM_wbactive == 1) begin
 					rs2 <= exmm_aluresult;
-                        	end else if(next_rs2reg == MEMEX_rd) begin
+                        	end else if(next_rs2reg == MEMEX_rd && MEMEX_wbactive == 1) begin
                                 	rs2 <= MEMEX_rdval;
-				end else if(next_rs2reg == WBEX_rd) begin
+				end else if(next_rs2reg == WBEX_rd && WBEX_wbactive == 1) begin
 					rs2 <= WBEX_rdval;
 				end else begin	
 					rs2 <= next_rs2;

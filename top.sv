@@ -145,6 +145,8 @@ i_execute
     .MEMEX_rdval(MEMEX_rdval),
     .WBEX_rdval(WBEX_rdval),
     .MEMEX_stall(MEMEX_stall),
+    .WBEX_wbactive(WBEX_wbactive),
+    .MEMEX_wbactive(MEMEX_wbactive),
 //outputs
     .EXMEM_ready(EXMEM_ready),
     .mem_active(mem_active),
@@ -167,7 +169,7 @@ i_execute
     wire [63:0] MEMEX_rdval;
     wire MEMEX_stall;
     wire dataselect;
-
+    wire MEMEX_wbactive;
 memoryMod
 #(              
                 .BUS_DATA_WIDTH(64),
@@ -188,6 +190,7 @@ i_memory
     .EXMEM_wbactive(EXMEM_wbactive),
 
 //outputs
+    .MEMEX_wbactive(MEMEX_wbactive),
     .memwb_aluresult(MEMWB_aluresult),
     .memwb_loadeddata(MEMWB_loadeddata),
     .memwb_rd(MEMWB_rd),
@@ -213,6 +216,7 @@ i_memory
 
 wire [5:0] WBEX_rd;
 wire [63:0] WBEx_rdval;
+wire WBEX_wbactive;
 writebackMod
 i_writeback
 (
@@ -225,7 +229,8 @@ i_writeback
 	.MEMWB_ready(MEMWB_ready),
 	.WBEX_rd(WBEX_rd),
 	.memwb_loadeddata(MEMWB_loadeddata),
-	.WBEX_rdval(WBEX_rdval)
+	.WBEX_rdval(WBEX_rdval),
+	.WBEX_wbactive(WBEX_wbactive)
 );
 
 

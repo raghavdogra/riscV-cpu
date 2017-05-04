@@ -38,7 +38,8 @@ module memoryMod
     output [5:0] MEMEX_rd,
     output [63:0] MEMEX_rdval,
     output MEMEX_stall,
-    output dataselect	
+    output dataselect,
+    output MEMEX_wbactive	
 );
 
     logic [63:0] exmem_aluresult;
@@ -108,6 +109,7 @@ end
 
 always_comb begin
 	MEMWB_wbactive = mymemwb_wbactive;
+	MEMEX_wbactive = mymemwb_wbactive;
 end
 
 always_comb begin
