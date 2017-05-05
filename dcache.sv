@@ -209,20 +209,28 @@ always_ff @(posedge clk) begin
 	if (memoryState == memoryReading && next_memoryState == memoryIdle) begin
 			if (($random()<0)) begin
 				$display("using Set 1");
-//				if(Set1dirty[in_addr[14:6]] == 0) begin
+				if(Set1dirty[in_addr[14:6]] == 0) begin
 					Set1data[in_addr[14:6]] <= missCacheLine;
 					Set1tag[in_addr[14:6]] <= in_addr[63:15];
 					Set1dirty[in_addr[14:6]] <= 0;
-//				end
+				end else begin
+					dirtyWriteback <= 1;
+					dirtyCacheLine <= Set1data[in_addr[14:6]];
+					write_addr <= {Set1tag[in_addr[14:6]],in_addr[14:6],6'b000000};
+					way <= 1;
+				end
 			end else begin
 				$display("using Set 2");
-//				if(Set2dirty[in_addr[14:6]] == 0) begin
+				if(Set2dirty[in_addr[14:6]] == 0) begin
 					Set2data[in_addr[14:6]] <= missCacheLine;
 					Set2tag[in_addr[14:6]] <= in_addr[63:15];
 					Set2dirty[in_addr[14:6]] <= 0;
-//				end else begin
-//					dirtyWriteback <= 1;
-//					dirtyCacheLine <= Set2data[in_addr[14:6]];
+				end else begin
+					dirtyWriteback <= 1;
+					dirtyCacheLine <= Set2data[in_addr[14:6]];
+					write_addr <= {Set2tag[in_addr[14:6]],in_addr[14:6],6'b000000};
+					way <= 2;
+				end
 			end
 	end
 end
@@ -235,21 +243,108 @@ always_ff @(posedge clk) begin
         end     
 	
 end
-/*
+logic [511:0] dirtyCacheLine;
+logic dirtyWriteback;
+logic [63:0] write_addr;
+logic way;
+logic dirtywritebackstage;
+logic datawritebegin;
+logic [63:0] latcheddata;
+int ncyclecount;
+int cyclecount;
+logic nbus_reqcyc;
 always_comb begin
+if(dirtywritebackstage == 1) begin
+	
+	if(bus_reqack == 1) begin
+		datawritebegin = 1;
+		ncyclecount = 1;
+	end
+	if(ncyclecount > 0) begin
+		ncyclecount = cyclecount + 1;
+	end
+	case (ncyclecount)
+        	0: begin
+                end
+		1: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[63:0];		
+		end 
+		2: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[127:64];
+		end
+		3: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[191:128];		
+		end 
+		4: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[255:192];		
+		end 
+		5: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[319:256];
+		end
+		6: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[383:320];		
+		end 
+		7: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[447:384];		
+		end 
+		8: begin
+			nbus_reqcyc = 1;
+			latcheddata = dirtyCacheLine[511:448];
+		end
+		9: begin
+			nbus_reqcyc = 0;
+			latcheddata = 0;
+		end
+		10: begin
+			datawritebegin = 0;	
+		end
+  	endcase
 
-	nextdirtyWriteback = dirtyWriteback;
+end
 end
 
 always_ff @(posedge clk) begin
-        if (nextdirtyWriteback == 1 && dirtyWBstage == 0) begin
-		dirtyWBstage <= 1;
-		cyclecount <= 1;
+        if (dirtyWriteback == 1) begin
+		dirtyWriteback <= 0;
+		dirtywritebackstage <= 1; 
+		bus_reqtag <= `SYSBUS_WRITE << 8 | `SYSBUS_MEMORY << 12;
+                bus_respack <= 0;
+                bus_req <= write_addr;
+                bus_reqcyc <= 1;
+		cyclecount <=0;
+		
 	end
-	 
-
+	if(dirtywritebackstage == 1) begin
+		if(datawritebegin == 1) begin
+			bus_reqcyc <= nbus_reqcyc;
+			bus_req <= latcheddata; //latch address first
+			cyclecount <= ncyclecount;
+		end
+		if(ncyclecount == 10) begin
+			dirtywritebackstage <= 0;
+			if(way == 1) begin
+				Set1data[in_addr[14:6]] <= missCacheLine;
+				Set1tag[in_addr[14:6]] <= in_addr[63:15];
+				Set1dirty[in_addr[14:6]] <= 0;
+				way <= 0;
+			end
+			if(way == 2) begin
+				Set2data[in_addr[14:6]] <= missCacheLine;
+				Set2tag[in_addr[14:6]] <= in_addr[63:15];
+				Set2dirty[in_addr[14:6]] <= 0;
+				way <= 0;
+			end
+		end
+	end	
 end
-*/
+
 initial begin
 int i;
 for (i = 0; i < 512; i = i +1) begin
