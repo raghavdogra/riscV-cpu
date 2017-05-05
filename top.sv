@@ -5,6 +5,7 @@
 `include "executeModule.sv"
 `include "memoryModule.sv"
 `include "writebackModule.sv"
+`include "busarbiter.sv"
 module top
 #(
   BUS_DATA_WIDTH = 64,
@@ -32,6 +33,25 @@ module top
 
 registerfile regfile();
 
+wire icache_busreq;
+wire dcache_busreq;
+wire icache_busidle;
+wire dcache_busidle;
+wire icache_busgrant;
+wire dcache_busgrant;
+
+busarbiter
+i_busarbiter(
+
+
+.icache_busreq(icache_busreq),
+.dcache_busreq(dcache_busreq),
+.icache_busidle(icache_busidle),
+.dcache_busidle(dcache_busidle),
+.icache_busgrant(icache_busgrant),
+.dcache_busgrant(dcache_busgrant)
+
+);
 
 
 // Fetch Module Wires
@@ -73,7 +93,16 @@ fetchMod
 	.bus_respcyc(bus_respcyc),
 	.bus_resp  (bus_resp),
 	.bus_resptag(bus_resptag),
-	.bus_respack(bus_respack)
+	.bus_respack(bus_respack),
+
+
+// bus arbiter interface
+	.icache_busreq(icache_busreq),
+	.icache_busidle(icache_busidle),
+	.icache_busgrant(icache_busgrant)
+
+
+
 	);
 
 // Decode Module Wires
@@ -210,7 +239,11 @@ i_memory
         .bus_respcyc(bus_respcyc),
         .bus_resp  (bus_resp),
         .bus_resptag(bus_resptag),
-        .bus_respack(bus_respack)
+        .bus_respack(bus_respack),
+//Bus Arbiter Interface
+	.dcache_busreq(dcache_busreq),
+        .dcache_busidle(dcache_busidle),
+	.dcache_busgrant(dcache_busgrant)
 
 );
 

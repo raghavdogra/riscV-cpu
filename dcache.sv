@@ -28,8 +28,13 @@ input [63:0] in_data,	//RS2 value
 output [63:0] memwb_loadeddata,
 output load_str_done,
 output MEMEX_stall,
-output dataselect
+output dataselect,
 
+//interface for bus arbiter
+
+output dcache_busreq,
+output dcache_busidle,
+input dcache_busgrant
 
 
 );
@@ -155,11 +160,13 @@ end
   always_comb begin
   case (memoryState)
         memoryRequest: begin
+		dcache_busidle = 0;
                 if ({bus_reqack,bus_respcyc} == 2'b10) begin
                       next_memoryState = memoryWaiting;
                 end
         end
         memoryWaiting: begin
+		dcache_busidle = 0;
                 if ({bus_reqack,bus_respcyc} == 2'bx1) begin
 			cache_line = bus_resp;
 			cacheLineAddress = in_addr;
@@ -167,6 +174,7 @@ end
                 end
         end
         memoryReading: begin
+		dcache_busidle = 0;
 		cache_line = bus_resp;
 		cacheLineAddress = prev_cacheLineAddress + 40'h8;
                 if ({bus_reqack,bus_respcyc} == 2'bx0) begin
@@ -175,7 +183,7 @@ end
                 end
         end
 	memoryIdle: begin
-		
+		dcache_busidle = 1;
 	end	
   endcase
   end
@@ -187,7 +195,11 @@ always_ff @(posedge clk) begin
 		next_memoryState = memoryIdle;
 		missCacheLine <= 0;
 	end
-	if(cache_hit==0 && memoryState == memoryIdle  && !reset) begin
+	if(cache_hit == 0 && memoryState == memoryIdle && !reset && dcache_busgrant == 0) begin	
+			dcache_busreq <= 1;	
+	end
+	if(cache_hit==0 && memoryState == memoryIdle  && !reset && dcache_busgrant == 1) begin
+			dcache_busreq <= 0;
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
                         bus_respack <= 0;
                         bus_req <= in_addr;
@@ -317,7 +329,7 @@ always_ff @(posedge clk) begin
         if (dirtyWriteback == 1) begin
 		dirtyWriteback <= 0;
 		dirtywritebackstage <= 1; 
-		bus_reqtag <= `SYSBUS_WRITE << 8 | `SYSBUS_MEMORY << 12;
+		bus_reqtag <= `SYSBUS_WRITE << 12 | `SYSBUS_MEMORY << 8;
                 bus_respack <= 0;
                 bus_req <= write_addr;
                 bus_reqcyc <= 1;

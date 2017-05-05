@@ -24,8 +24,15 @@ input [63:0] stackptr,
 
 input [63:0] pc,
 output [31:0] instr_reg,
-output data_ack
+output data_ack,
 
+
+
+//interface for bus arbiter
+
+output icache_busreq,
+output icache_busidle,
+input icache_busgrant
 );
 
 
@@ -67,14 +74,12 @@ always_comb begin
 //			$display("instr_reg         = %x", instr_reg);	
 		cache_hit = 1;
 		data_ack = 1;
-		
 		//instr_reg = (pc[5])?data[pc[14:6]][63:32]:data[pc[14:6]][31:0];
 	//	BO =  pc[5:2]; 
 		//instr_reg = data[pc[14:6]][];
 	end else begin
 		data_ack = 0;
 		cache_hit = 0;
-		
 		//instr_reg = 0;
 	end
 end
@@ -96,11 +101,13 @@ end
   always_comb begin
   case (memoryState)
         memoryRequest: begin
+		icache_busidle = 0;
                 if ({bus_reqack,bus_respcyc} == 2'b10) begin
                       next_memoryState = memoryWaiting;
                 end
         end
         memoryWaiting: begin
+		icache_busidle = 0;
                 if ({bus_reqack,bus_respcyc} == 2'bx1) begin
 			cache_line = bus_resp;
 			cacheLineAddress = pc;
@@ -108,6 +115,7 @@ end
                 end
         end
         memoryReading: begin
+		icache_busidle = 0;
 		cache_line = bus_resp;
 		cacheLineAddress = prev_cacheLineAddress + 40'h8;
                 if ({bus_reqack,bus_respcyc} == 2'bx0) begin
@@ -115,7 +123,7 @@ end
                 end
         end
 	memoryIdle: begin
-		
+		icache_busidle = 1;
 	end	
   endcase
   end
@@ -127,7 +135,11 @@ always_ff @(posedge clk) begin
 		next_memoryState = memoryIdle;
 		missCacheLine <= 0;
 	end
-	if(cache_hit==0 && memoryState == memoryIdle && !reset) begin
+	if(cache_hit == 0 &&memoryState == memoryIdle && !reset && icache_busgrant == 0) begin
+		icache_busreq <= 1;
+	end
+	if(cache_hit==0 && memoryState == memoryIdle && !reset && icache_busgrant == 1) begin
+			icache_busreq <= 0;
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
                         bus_respack <= 0;
                         bus_req <= pc;

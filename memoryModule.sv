@@ -39,7 +39,12 @@ module memoryMod
     output [63:0] MEMEX_rdval,
     output MEMEX_stall,
     output dataselect,
-    output MEMEX_wbactive	
+    output MEMEX_wbactive,
+ // Bus Arbiter interface
+   output dcache_busreq,
+   output dcache_busidle,
+   input dcache_busgrant
+	
 );
 
     logic [63:0] exmem_aluresult;
@@ -80,7 +85,13 @@ i_dcache
   .memwb_loadeddata(memwb_loadeddata),
   .load_str_done(load_str_done),
   .MEMEX_stall(MEMEX_stall),
-  .dataselect(dataselect)
+  .dataselect(dataselect),
+
+//Bus Arbiter Interface
+	.dcache_busreq(dcache_busreq),
+        .dcache_busidle(dcache_busidle),
+	.dcache_busgrant(dcache_busgrant)
+
 );
 logic mymemwb_ready;
 logic mymemwb_wbactive;

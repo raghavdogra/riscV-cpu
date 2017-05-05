@@ -27,7 +27,15 @@ module fetchMod
   input  [BUS_TAG_WIDTH-1:0] bus_resptag,
   input  [63:0] EXIF_targetpc,
   input  EXIF_branch, 
-  input  IDIF_stall
+  input  IDIF_stall,
+  
+
+// Bus Arbiter interface
+  output icache_busreq,
+  output icache_busidle,
+  input icache_busgrant
+
+
 );
 
 cache
@@ -51,7 +59,11 @@ cache
         .bus_resptag(bus_resptag),
         .bus_respack(bus_respack),
 	.data_ack(data_ack),
-	.instr_reg(instr_reg)
+	.instr_reg(instr_reg),
+	.icache_busreq(icache_busreq),
+        .icache_busidle(icache_busidle),
+	.icache_busgrant(icache_busgrant)
+
         );
 
 logic [63:0] npc;
