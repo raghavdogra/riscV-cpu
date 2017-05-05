@@ -1,31 +1,25 @@
-addi	sp,sp,-16
-li	s0,10
-li	s1,9
-li	a0,8
-li	a1,7
-li	a2,6
-li	a3,5
-li	a4,4
-li	a5,3
-li	a6,2
-li	a7,1
-mv	t3,s0
-mv	t1,s1
-bge	a1,a0,16000
-addw	t1,t3,t1
-addw	a0,t1,a0
-addw	a1,a0,a1
-addw	a2,a1,a2
-addw	a3,a2,a3
-addw	a4,a3,a4
-addw	a5,a4,a5
-mv	a4,a6
-ld	t5,32(zero)
-ld	s11,0(zero)
-addw	a5,a5,a4
-mv	a4,a7
-addw	a5,a5,a4
-mv	t6,a5
+ld	s11,8(zero)
+ld	t5,16(zero)
+li	t4,0
+li	s7,0
+addi	t4,t4,1024
+add	t4,t4,t4
+add	t4,t4,t4
+add	t4,t4,t4
+add	t4,t4,t4
+add	t4,t4,t4
+add	s7,t4,t4
 nop
-addi	sp,sp,16
+nop
+nop
+nop
+nop
+nop
+nop
+sd	t5,0(t4)
+sd	s11,0(s7)
+sd	s11,0(zero)
+nop
+nop
+nop
 ret

@@ -87,6 +87,7 @@ always_comb begin
 				//BO =  in_addr[5:2]; 
 				//instr_reg = data[in_addr[14:6]][];
 			end else begin
+				$display("store instruction , in_addr = %x in_data = %x", in_addr,in_data);
 				//making those 8 bytes to be zero
 				tempLD = (ALLONES << (in_addr[5:3] * 64));
 				tempLD = ~tempLD;
@@ -122,12 +123,12 @@ end
 always_ff @(posedge clk) begin
 	if (writeback == 1) begin
 			if (prev_in_addr[63:15]==Set1tag[prev_in_addr[14:6]] ) begin
-				$display(" writing using Set 1");
+				$display(" writing using Set 1 setting dirty bit 1");
 				Set1data[prev_in_addr[14:6]] <= hitCacheLine;
 				Set1tag[prev_in_addr[14:6]] <= prev_in_addr[63:15];
 				Set1dirty[prev_in_addr[14:6]] <= 1;
 			end else begin
-				$display(" writing using Set 2");
+				$display(" writing using Set 2 setting dirtybit 1");
 				$display("hcl= %x ",hitCacheLine);
 				Set2data[prev_in_addr[14:6]] <= hitCacheLine;
 				Set2tag[prev_in_addr[14:6]] <= prev_in_addr[63:15];
@@ -208,24 +209,26 @@ always_ff @(posedge clk) begin
 	end
 	if (memoryState == memoryReading && next_memoryState == memoryIdle) begin
 			if (($random()<0)) begin
-				$display("using Set 1");
 				if(Set1dirty[in_addr[14:6]] == 0) begin
+					$display("using Set 1, dirty bit was 0 for in_addr %x",in_addr);
 					Set1data[in_addr[14:6]] <= missCacheLine;
 					Set1tag[in_addr[14:6]] <= in_addr[63:15];
 					Set1dirty[in_addr[14:6]] <= 0;
 				end else begin
+					$display("using Set 1, dirty bit was 1 for in_addr %x",in_addr);
 					dirtyWriteback <= 1;
 					dirtyCacheLine <= Set1data[in_addr[14:6]];
 					write_addr <= {Set1tag[in_addr[14:6]],in_addr[14:6],6'b000000};
 					way <= 1;
 				end
 			end else begin
-				$display("using Set 2");
 				if(Set2dirty[in_addr[14:6]] == 0) begin
+					$display("using Set 2, dirty bit was 0 for in_addr %x",in_addr);
 					Set2data[in_addr[14:6]] <= missCacheLine;
 					Set2tag[in_addr[14:6]] <= in_addr[63:15];
 					Set2dirty[in_addr[14:6]] <= 0;
 				end else begin
+					$display("using Set 2, dirty bit was 1 for in_addr %x",in_addr);
 					dirtyWriteback <= 1;
 					dirtyCacheLine <= Set2data[in_addr[14:6]];
 					write_addr <= {Set2tag[in_addr[14:6]],in_addr[14:6],6'b000000};

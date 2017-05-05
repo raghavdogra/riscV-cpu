@@ -81,7 +81,7 @@ end
 			end
 			pc <= npc;
 			
-			$display("PC,%x  npc %x",pc,npc);
+//			$display("PC,%x  npc %x",pc,npc);
 		end
 	//	else
 	//		instr_reg = 8'hFF;
