@@ -183,7 +183,10 @@ end
                 end
         end
 	memoryIdle: begin
-		dcache_busidle = 1;
+		if(dirtywritebackstage == 1 || dirtyWriteback == 1)
+			dcache_busidle = 0;
+		else
+			dcache_busidle = 1;
 	end	
   endcase
   end
@@ -195,10 +198,10 @@ always_ff @(posedge clk) begin
 		next_memoryState = memoryIdle;
 		missCacheLine <= 0;
 	end
-	if(cache_hit == 0 && memoryState == memoryIdle && !reset && dcache_busgrant == 0) begin	
+	if(cache_hit == 0 && memoryState == memoryIdle && !reset && dcache_busgrant == 0 && dirtywritebackstage == 0 && dirtyWriteback == 0) begin	
 			dcache_busreq <= 1;	
 	end
-	if(cache_hit==0 && memoryState == memoryIdle  && !reset && dcache_busgrant == 1) begin
+	if(cache_hit==0 && memoryState == memoryIdle  && !reset && dcache_busgrant == 1 && dirtywritebackstage == 0 && dirtyWriteback == 0) begin
 			dcache_busreq <= 0;
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
                         bus_respack <= 0;
