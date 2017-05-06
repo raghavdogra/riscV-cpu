@@ -1,7 +1,9 @@
 .PHONY: all run clean submit
 
-RUNELF=/home/mjadhav/cse502finalproject/sample.o
-TRACE=--trace
+RUNELF=/shared/cse502/tests/wp1/prog1.o
+
+TRACE?=--trace
+HAVETLB=n
 
 VFILES=$(wildcard *.sv)
 CFILES=$(wildcard *.cpp)
@@ -14,12 +16,12 @@ obj_dir/Vtop: obj_dir/Vtop.mk
 obj_dir/Vtop.mk: $(VFILES) $(CFILES) 
 	verilator -Wall -Wno-LITENDIAN -Wno-lint -O3 $(TRACE) --no-skip-identical --cc top.sv \
 	--exe $(CFILES) /shared/cse502/DRAMSim2/libdramsim.so \
-	-CFLAGS -I/shared/cse502 \
+	-CFLAGS -I/shared/cse502 -CFLAGS -std=c++11 -CFLAGS -g3 \
 	-LDFLAGS -Wl,-rpath=/shared/cse502/DRAMSim2 \
-	-LDFLAGS -lncurses -LDFLAGS -lelf
+	-LDFLAGS -lncurses -LDFLAGS -lelf -LDFLAGS -lrt
 
 run: obj_dir/Vtop
-	cd obj_dir/ && ./Vtop $(RUNELF)
+	cd obj_dir/ && env HAVETLB=$(HAVETLB) ./Vtop $(RUNELF)
 
 clean:
 	rm -rf obj_dir/ dramsim2/results trace.vcd core 
