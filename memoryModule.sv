@@ -29,7 +29,10 @@ module memoryMod
     input EXMEM_ready,
     input [63:0] EXMEM_rs2,
     input EXMEM_wbactive,
+    input [7:0] next_ldst_size,
+    input next_EXMEM_ecall,
 
+    output MEMWB_ecall,
     output MEMWB_wbactive,
     output [63:0] memwb_aluresult,
     output [63:0] memwb_loadeddata,
@@ -46,12 +49,13 @@ module memoryMod
    input dcache_busgrant
 	
 );
-
+    logic exmem_ecall;	
     logic [63:0] exmem_aluresult;
     logic [5:0] exmem_rd;
     logic loadread;
     logic mem_active;
     logic [63:0]in_data;
+    logic [7:0] ldst_size;
 
 dcache
 #(
@@ -80,6 +84,7 @@ i_dcache
   .load(loadread), //request is read or write 1-read, 0-write
   .in_addr(exmem_aluresult), //aluresult from Execute
   .in_data(in_data),   //RS2 value
+  .ldst_size(ldst_size),
 
 //cache output
   .memwb_loadeddata(memwb_loadeddata),
@@ -141,8 +146,10 @@ always_ff @(posedge clk) begin
                 exmem_rd <= exmem_rd;
 		loadread <= loadread;
 		mem_active <= mem_active;
+		ldst_size <= ldst_size;
 		in_data <= in_data;
    		mymemwb_wbactive <= mymemwb_wbactive;
+		exmem_ecall <= exmem_ecall;
     end else begin
 	//MEMWB_ready =1;
 		if (MEMEX_stall == 0) begin
@@ -150,8 +157,10 @@ always_ff @(posedge clk) begin
                 	exmem_rd <= next_exmem_rd;
 			loadread <= next_load;
 			mem_active <= next_mem_active;
+			ldst_size <= next_ldst_size;
 			in_data <= EXMEM_rs2;
    			mymemwb_wbactive <= EXMEM_wbactive;
+			exmem_ecall <= next_EXMEM_ecall;
 		end else begin
 			exmem_aluresult <= exmem_aluresult;
    			mymemwb_wbactive <= mymemwb_wbactive;
@@ -159,6 +168,8 @@ always_ff @(posedge clk) begin
                 	exmem_rd <= exmem_rd;
 			loadread <= loadread;
 			mem_active <= mem_active;
+			ldst_size <= ldst_size;
+			exmem_ecall <= exmem_ecall;
 		end
 
 end
@@ -169,7 +180,7 @@ always_comb begin
 	memwb_rd = exmem_rd;
 	MEMEX_rd = exmem_rd;
 	MEMEX_rdval = exmem_aluresult;
-
+	MEMWB_ecall = exmem_ecall;
 end
 
 endmodule

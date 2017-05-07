@@ -128,6 +128,7 @@ decodeMod
 	.IFID_ready(IFID_ready),
 	.EXID_stall(EXID_stall),
 	.EXIF_branch(EXIF_branch),
+	.ecalldone(ecalldone),
 	
 //output
 	.IDEX_ready(IDEX_ready),
@@ -153,7 +154,8 @@ wire load;
 wire EXID_stall;
 wire EXIF_branch;
 wire [63:0] EXIF_targetpc;
-
+wire [7:0] ldst_size;
+wire EXMEM_ecall;
 
 executeMod
 i_execute
@@ -178,6 +180,7 @@ i_execute
     .WBEX_wbactive(WBEX_wbactive),
     .MEMEX_wbactive(MEMEX_wbactive),
 //outputs
+    .EXMEM_ecall(EXMEM_ecall),
     .EXMEM_ready(EXMEM_ready),
     .mem_active(mem_active),
     .load(load),
@@ -187,6 +190,7 @@ i_execute
     .target_pc(EXIF_targetpc),
     .branch(EXIF_branch),
     .EXID_stall(EXID_stall),
+    .ldst_size(ldst_size),
     .EXMEM_wbactive(EXMEM_wbactive)
 );
 
@@ -200,6 +204,8 @@ i_execute
     wire MEMEX_stall;
     wire dataselect;
     wire MEMEX_wbactive;
+    wire MEMWB_ecall;
+
 memoryMod
 #(              
                 .BUS_DATA_WIDTH(64),
@@ -218,6 +224,8 @@ i_memory
     .target_pc(EXIF_targetpc),
     .EXMEM_ready(EXMEM_ready),
     .EXMEM_wbactive(EXMEM_wbactive),
+    .next_ldst_size(ldst_size),
+    .next_EXMEM_ecall(EXMEM_ecall),
 
 //outputs
     .MEMEX_wbactive(MEMEX_wbactive),
@@ -230,6 +238,7 @@ i_memory
     .MEMEX_stall(MEMEX_stall),
     .dataselect(dataselect),
     .MEMWB_wbactive(MEMWB_wbactive),
+    .MEMWB_ecall(MEMWB_ecall),
 
 //bus interface
         .bus_reqcyc(bus_reqcyc),
@@ -250,6 +259,7 @@ i_memory
 
 wire [5:0] WBEX_rd;
 wire [63:0] WBEx_rdval;
+wire ecalldone;
 wire WBEX_wbactive;
 writebackMod
 i_writeback
@@ -257,6 +267,7 @@ i_writeback
 	.clk(clk),
 	.reset(reset),
 	.dest_reg(MEMWB_rd),
+	.MEMWB_ecall(MEMWB_ecall),
 	.MEMWB_wbactive(MEMWB_wbactive),
 	.dataselect(dataselect),
 	.mewb_aluresult(MEMWB_aluresult),
@@ -264,6 +275,7 @@ i_writeback
 	.WBEX_rd(WBEX_rd),
 	.memwb_loadeddata(MEMWB_loadeddata),
 	.WBEX_rdval(WBEX_rdval),
+	.ecalldone(ecalldone),
 	.WBEX_wbactive(WBEX_wbactive)
 );
 

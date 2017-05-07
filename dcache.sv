@@ -25,6 +25,8 @@ input mem_active,
 input load, //request is read or write 1-read, 0-write
 input [63:0] in_addr, //aluresult from Execute
 input [63:0] in_data,	//RS2 value
+input [7:0] ldst_size,
+
 output [63:0] memwb_loadeddata,
 output load_str_done,
 output MEMEX_stall,
@@ -63,7 +65,31 @@ logic [31:0] out_data;
 logic [63:0] cache_line;
 logic [63:0] prev_cacheLineAddress;
 int BO;
+
+logic invalidate;
+logic [63:0] invalidaddress;
+
 enum {memoryRequest=2'b10, memoryWaiting=2'b00, memoryReading=2'b01, memoryIdle=2'b11} memoryState, next_memoryState;
+
+
+always_comb begin
+if (bus_respcyc == 1 && bus_resptag == 12'h800)
+	invalidate = 1;
+	invalidaddress = bus_resp;	
+
+end
+
+always_ff @(posedge clk) begin
+	if(invalidate == 1) begin
+		if (invalidaddress[63:15]==Set1tag[invalidaddress[14:6]] ) begin
+			Set1tag[invalidaddress[14:6]] <= 48'hdeadbeefdead;
+		end 
+		if (invalidaddress[63:15]==Set2tag[invalidaddress[14:6]] ) begin
+			Set1tag[invalidaddress[14:6]] <= 48'hdeadbeefdead;
+		end
+	end
+end
+
 
 //logic to check whether a tag is present in the cache, if yes->cache_hit, o.w. cache_miss
 always_comb begin
@@ -126,6 +152,7 @@ end
 
 
 always_ff @(posedge clk) begin
+if (invalidate == 0) begin
 	if (writeback == 1) begin
 			if (prev_in_addr[63:15]==Set1tag[prev_in_addr[14:6]] ) begin
 				$display(" writing using Set 1 setting dirty bit 1");
@@ -140,7 +167,8 @@ always_ff @(posedge clk) begin
 				Set2dirty[prev_in_addr[14:6]] <= 1;
 			end
 	
-	end			
+	end	
+end		
 end
 
 
@@ -193,6 +221,7 @@ end
 
 
 always_ff @(posedge clk) begin
+if (invalidate == 0) begin
         if (reset) begin
                 memoryState <= memoryIdle;
 		next_memoryState = memoryIdle;
@@ -252,15 +281,18 @@ always_ff @(posedge clk) begin
 			end
 	end
 end
+end
 
 always_ff @(posedge clk) begin
+if (invalidate == 0) begin
 	memoryState <= next_memoryState;
 	if (next_memoryState != memoryIdle) begin
                         bus_reqcyc <= next_memoryState[1];
                         bus_respack <= next_memoryState[0];
         end     
-	
+end	
 end
+
 logic [511:0] dirtyCacheLine;
 logic dirtyWriteback;
 logic [63:0] write_addr;
@@ -329,6 +361,7 @@ end
 end
 
 always_ff @(posedge clk) begin
+if (invalidate == 0) begin
         if (dirtyWriteback == 1) begin
 		dirtyWriteback <= 0;
 		dirtywritebackstage <= 1; 
@@ -361,6 +394,7 @@ always_ff @(posedge clk) begin
 			end
 		end
 	end	
+end
 end
 
 initial begin

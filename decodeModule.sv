@@ -7,6 +7,8 @@ input [63:0] IFID_npc,
 input IFID_ready,
 input EXID_stall,
 input EXIF_branch,
+input ecalldone,
+
 output [63:0] IDEX_npc,
 output [64:0] opcode,
 output signed [63:0] rs1,
@@ -20,6 +22,8 @@ output IDIF_stall
 //output signed [64:0] pcint
 );
 
+logic ecallstage;
+logic ecallactive;
 logic signed [11:0] temp;
 logic signed [12:0] temp_addr;
 logic signed [64:0] address;
@@ -50,6 +54,28 @@ always_ff @(posedge clk) begin
 		immediate = 0;
 	//	pcint = 0;
 	end else begin
+		if (ecallactive == 1) begin
+			instr_reg <= 32'h00000013;
+			ecallstage <= 1;
+		
+		end else if (ecallstage == 1 && ecalldone == 0) begin
+			ecallstage <= 1;
+			instr_reg <= 32'h00000013;
+		end else if (ecallstage == 1 && ecalldone == 1) begin
+			ecallstage <= 0;
+			if (IFID_ready == 1 && EXID_stall == 0) begin
+                        	if(EXIF_branch == 1) begin
+                                	instr_reg <=  32'h00000013;
+                        	end else begin
+                                	instr_reg <= IFID_instreg;
+                        	end
+                        	IDEX_npc <= IFID_npc;
+                	end
+                	else begin
+                        	instr_reg <= instr_reg;
+                        	IDEX_npc <= IDEX_npc;
+              		end
+		end else 
 		if (IFID_ready == 1 && EXID_stall == 0) begin
 			if(EXIF_branch == 1) begin
 				instr_reg <=  32'h00000013;
@@ -68,7 +94,7 @@ always_ff @(posedge clk) begin
 end
 
 always_comb begin
-	if(EXID_stall == 1) begin
+	if(EXID_stall == 1 || ecallactive == 1 || (ecallstage == 1 && ecalldone == 0 )) begin
 		IDIF_stall = 1;
 	end else begin
 		IDIF_stall = 0;
@@ -216,6 +242,10 @@ always_comb begin
                         IDEX_rs1reg = instr_reg[19:15];
                         IDEX_rs2reg = 0;
                 	immediate = temp;
+        	end else if (instr_reg[31:0] == 32'b1110011) begin
+			opcode = "ecall";
+			ecallactive = 1;
+
         	end else if (instr_reg[6:0] == 7'b1110011) begin
                		case(instr_reg[14:12])
                        		3'b001: opcode = "csrrw";

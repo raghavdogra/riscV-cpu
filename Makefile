@@ -1,6 +1,6 @@
 .PHONY: all run clean submit
 
-RUNELF=/shared/cse502/tests/wp1/prog1.o
+RUNELF=/home/rdogra/sample.o
 
 TRACE?=--trace
 HAVETLB=n

@@ -27,9 +27,11 @@ module executeMod
     output [63:0] EXMEM_rs2,
     output [5:0] dest_reg,
     output mem_active,
+    output [7:0] ldst_size,
     output load,
     output EXMEM_ready,
     output EXMEM_wbactive,
+    output EXMEM_ecall,
     output EXID_stall
 );
 
@@ -131,60 +133,76 @@ always_comb begin
 	load = 0;
 	EXMEM_wbactive = 1;
 	EXMEM_rs2 = rs2;
+	EXMEM_ecall = 0;
+	ldst_size = 0;
 	case(opcode)	
+	    	"ecall": begin
+		      	EXMEM_ecall = 1;
+			end
 	    	"lb": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
+			ldst_size = 8;
 		      end
                 "lh": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
+			ldst_size = 16;
 		      end
                 "lw": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
+			ldst_size = 32;
 		      end
                 "lbu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
+			ldst_size = 8;
 		       end
                 "lhu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
+			ldst_size = 16;
                        end
 	    	"ld": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
+			ldst_size = 64;
                       end
 		"lwu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
+			ldst_size = 32;
 		       end
 		"sb": begin
 			mem_active = 1;
 			EXMEM_wbactive = 0;
+			ldst_size = 8;
 		      end
                 "sh": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			EXMEM_wbactive = 0;
+			ldst_size = 16;
 		      end
                 "sw": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			EXMEM_wbactive = 0;
+			ldst_size = 32;
 		      end
                 "sd": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			EXMEM_wbactive = 0;
+			ldst_size = 64;
 		      end
 		"blt": begin
 			EXMEM_wbactive = 0;
