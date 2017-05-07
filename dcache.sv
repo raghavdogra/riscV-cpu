@@ -73,10 +73,13 @@ enum {memoryRequest=2'b10, memoryWaiting=2'b00, memoryReading=2'b01, memoryIdle=
 
 
 always_comb begin
-if (bus_respcyc == 1 && bus_resptag == 12'h800)
+if (bus_respcyc == 1 && bus_resptag == 12'h800) begin
 	invalidate = 1;
 	invalidaddress = bus_resp;	
-
+end else begin
+	invalidate = 0;
+	invalidaddress = 48'hdeadbeefdead;	
+end
 end
 
 always_ff @(posedge clk) begin
