@@ -155,6 +155,7 @@ wire EXID_stall;
 wire EXIF_branch;
 wire [63:0] EXIF_targetpc;
 wire [7:0] ldst_size;
+wire ldst_unsign;
 wire EXMEM_ecall;
 
 executeMod
@@ -191,6 +192,7 @@ i_execute
     .branch(EXIF_branch),
     .EXID_stall(EXID_stall),
     .ldst_size(ldst_size),
+    .ldst_unsign(ldst_unsign),
     .EXMEM_wbactive(EXMEM_wbactive)
 );
 
@@ -225,6 +227,7 @@ i_memory
     .EXMEM_ready(EXMEM_ready),
     .EXMEM_wbactive(EXMEM_wbactive),
     .next_ldst_size(ldst_size),
+    .next_ldst_unsign(ldst_unsign),
     .next_EXMEM_ecall(EXMEM_ecall),
 
 //outputs

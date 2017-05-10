@@ -28,6 +28,7 @@ module executeMod
     output [5:0] dest_reg,
     output mem_active,
     output [7:0] ldst_size,
+    output ldst_unsign,
     output load,
     output EXMEM_ready,
     output EXMEM_wbactive,
@@ -135,6 +136,7 @@ always_comb begin
 	EXMEM_rs2 = rs2;
 	EXMEM_ecall = 0;
 	ldst_size = 0;
+	ldst_unsign = 0;
 	case(opcode)	
 	    	"ecall": begin
 		      	EXMEM_ecall = 1;
@@ -144,42 +146,49 @@ always_comb begin
 			mem_active = 1;
 			load = 1;
 			ldst_size = 8;
+			ldst_unsign = 0;
 		      end
                 "lh": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
 			ldst_size = 16;
+			ldst_unsign = 0;
 		      end
                 "lw": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
 			ldst_size = 32;
+			ldst_unsign = 0;
 		      end
                 "lbu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
 			ldst_size = 8;
+			ldst_unsign = 1;
 		       end
                 "lhu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
 			ldst_size = 16;
+			ldst_unsign = 1;
                        end
 	    	"ld": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
 			ldst_size = 64;
+			ldst_unsign = 0;
                       end
 		"lwu": begin
 			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			load = 1;
 			ldst_size = 32;
+			ldst_unsign = 1;
 		       end
 		"sb": begin
 			mem_active = 1;

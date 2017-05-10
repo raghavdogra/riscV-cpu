@@ -30,6 +30,7 @@ module memoryMod
     input [63:0] EXMEM_rs2,
     input EXMEM_wbactive,
     input [7:0] next_ldst_size,
+    input next_ldst_unsign,
     input next_EXMEM_ecall,
 
     output MEMWB_ecall,
@@ -56,7 +57,7 @@ module memoryMod
     logic mem_active;
     logic [63:0]in_data;
     logic [7:0] ldst_size;
-
+    logic ldst_unsign;
 dcache
 #(
   .BUS_TAG_WIDTH(13),
@@ -85,6 +86,7 @@ i_dcache
   .in_addr(exmem_aluresult), //aluresult from Execute
   .in_data(in_data),   //RS2 value
   .ldst_size(ldst_size),
+  .ldst_unsign(ldst_unsign),
 
 //cache output
   .memwb_loadeddata(memwb_loadeddata),
@@ -147,6 +149,7 @@ always_ff @(posedge clk) begin
 		loadread <= loadread;
 		mem_active <= mem_active;
 		ldst_size <= ldst_size;
+		ldst_unsign <= ldst_unsign;
 		in_data <= in_data;
    		mymemwb_wbactive <= mymemwb_wbactive;
 		exmem_ecall <= exmem_ecall;
@@ -158,6 +161,7 @@ always_ff @(posedge clk) begin
 			loadread <= next_load;
 			mem_active <= next_mem_active;
 			ldst_size <= next_ldst_size;
+			ldst_unsign <= next_ldst_unsign;
 			in_data <= EXMEM_rs2;
    			mymemwb_wbactive <= EXMEM_wbactive;
 			exmem_ecall <= next_EXMEM_ecall;
@@ -169,6 +173,7 @@ always_ff @(posedge clk) begin
 			loadread <= loadread;
 			mem_active <= mem_active;
 			ldst_size <= ldst_size;
+			ldst_unsign <= ldst_unsign;
 			exmem_ecall <= exmem_ecall;
 		end
 

@@ -26,6 +26,7 @@ input load, //request is read or write 1-read, 0-write
 input [63:0] in_addr, //aluresult from Execute
 input [63:0] in_data,	//RS2 value
 input [7:0] ldst_size,
+input ldst_unsign,
 
 output [63:0] memwb_loadeddata,
 output load_str_done,
@@ -119,8 +120,12 @@ always_comb begin
 				if (ldst_size == 64) begin
 					memwb_loadeddata = loadedblock;
 				end else if (ldst_size == 32) begin
-					sign64 = in_addr[2]?loadedblock[63:32]:loadedblock[31:0];
-					memwb_loadeddata = sign64;
+					if (ldst_unsign == 0) begin
+						sign64 = in_addr[2]?loadedblock[63:32]:loadedblock[31:0];
+						memwb_loadeddata = sign64;
+					end else begin
+						memwb_loadeddata = in_addr[2]?loadedblock[63:32]:loadedblock[31:0];
+					end	
 				end else if (ldst_size == 16) begin
 					case (in_addr[2:1])
 						0: memwb_loadeddata = loadedblock[15:0];
