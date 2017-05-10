@@ -216,7 +216,7 @@ always_comb begin
                         	5'b10101: opcode = "sraw";
                         	5'b01000: opcode = "mulw";
                         	5'b01100: opcode = "divw";
-                        	5'b01101: opcode = "divwu";
+                        	5'b01101: opcode = "divuw";
                         	5'b01110: opcode = "remw";
                         	5'b01111: opcode = "remuw";
                	 	endcase

@@ -213,9 +213,49 @@ always_comb begin
 					branch = 0;
 				end
 			end	
+		"bltu": begin
+			EXMEM_wbactive = 0;
+			getAbs(rs1,abs);
+			getAbs(rs2,abs1);
+				if(abs < abs1) begin
+					branch = 1;
+					target_pc = IDEX_npc + immediate;
+				end else begin
+					branch = 0;
+				end
+			end	
 		"bge": begin
 			EXMEM_wbactive = 0;
 				if(rs1 > rs2) begin
+					branch = 1;
+					target_pc = IDEX_npc + immediate;
+				end else begin
+					branch = 0;
+				end
+			end	
+		"bgeu": begin
+			EXMEM_wbactive = 0;
+			getAbs(rs1,abs);
+			getAbs(rs2,abs1);
+				if(abs > abs1) begin
+					branch = 1;
+					target_pc = IDEX_npc + immediate;
+				end else begin
+					branch = 0;
+				end
+			end	
+		"beq": begin
+			EXMEM_wbactive = 0;
+				if(rs1 == rs2) begin
+					branch = 1;
+					target_pc = IDEX_npc + immediate;
+				end else begin
+					branch = 0;
+				end
+			end	
+		"bne": begin
+			EXMEM_wbactive = 0;
+				if(rs1 != rs2) begin
 					branch = 1;
 					target_pc = IDEX_npc + immediate;
 				end else begin
@@ -348,17 +388,17 @@ always_comb begin
                         exmm_aluresult = sign32[1];
 			end
                "sll": begin
-                        exmm_aluresult = rs1 << rs2[4:0];
+                        exmm_aluresult = rs1 << rs2[5:0];
                         end
                 "srl": begin
-                        exmm_aluresult = rs1 >> rs2[4:0];
+                        exmm_aluresult = rs1 >> rs2[5:0];
                         end
                 "sra": begin
                         temp = rs1;
                         bt = temp[63];
-			x = rs2[4:0];
+			x = rs2[5:0];
 			temp1 = rs2;
-                        temp = temp >> temp1[4:0];
+                        temp = temp >> temp1[5:0];
                         for (int i=63; i > (63-x); i--) begin
                                         temp[i] = bt;
                                 end
