@@ -53,6 +53,11 @@ logic Set2dirty [511:0];
 
 logic [63:0] cacheLineAddress;
 logic [63:0] prev_in_addr;
+
+logic [63:0] loadedblock;
+logic [63:0] wbblock;
+logic signed [63:0] sign64;
+
 logic writeback;
 
 logic [511:0] hitCacheLine;
@@ -109,8 +114,33 @@ always_comb begin
 				//$display("our expression = %x", (ALLONES << (in_addr[5:2] * 32)));
 				//$display("cacheLine      = %x", data[in_addr[14:6]]);
 				//$display("tempIR         = %x", tempIR);
-				memwb_loadeddata = tempLD >> (in_addr[5:3] * 64);
+				loadedblock = tempLD >> (in_addr[5:3] * 64);
 				//$display("instr_reg         = %x", instr_reg);	
+				if (ldst_size == 64) begin
+					memwb_loadeddata = loadedblock;
+				end else if (ldst_size == 32) begin
+					sign64 = in_addr[2]?loadedblock[63:32]:loadedblock[31:0];
+					memwb_loadeddata = sign64;
+				end else if (ldst_size == 16) begin
+					case (in_addr[2:1])
+						0: memwb_loadeddata = loadedblock[15:0];
+						1: memwb_loadeddata = loadedblock[31:16];
+						2: memwb_loadeddata = loadedblock[47:32];
+						3: memwb_loadeddata = loadedblock[63:48];
+					endcase
+				end else if (ldst_size == 8) begin
+					case (in_addr[2:0])
+						0: memwb_loadeddata = loadedblock[7:0];
+						1: memwb_loadeddata = loadedblock[15:8];
+						2: memwb_loadeddata = loadedblock[23:16];
+						3: memwb_loadeddata = loadedblock[31:24];
+						4: memwb_loadeddata = loadedblock[39:32];
+						5: memwb_loadeddata = loadedblock[47:40];
+						6: memwb_loadeddata = loadedblock[55:48];
+						7: memwb_loadeddata = loadedblock[63:56];
+					endcase
+				end
+
 				cache_hit = 1;
 				dataselect = 1;
 				MEMEX_stall = 0;
@@ -122,12 +152,45 @@ always_comb begin
 				//instr_reg = data[in_addr[14:6]][];
 			end else begin
 				$display("store instruction , in_addr = %x in_data = %x", in_addr,in_data);
+				tempLD = (ALLONES << (in_addr[5:3] * 64)) & hitCacheLine;
+				loadedblock = tempLD >> (in_addr[5:3] * 64);
+		
+				
+				if (ldst_size == 64) begin
+					wbblock = in_data;
+				end else if (ldst_size == 32) begin
+					case (in_addr[2])
+						0: wbblock = {loadedblock[63:32],in_data[31:0]};
+						1: wbblock = {in_data[31:0],loadedblock[31:0]};
+					endcase
+				end else if (ldst_size == 16) begin
+					case (in_addr[2:1])
+						0: wbblock = {loadedblock[63:16],in_data[15:0]};
+						1: wbblock = {loadedblock[63:32],in_data[15:0],loadedblock[15:0]};
+						2: wbblock = {loadedblock[63:48],in_data[15:0],loadedblock[31:0]};
+						3: wbblock = {in_data[15:0],loadedblock[47:0]};
+					endcase
+				end else if (ldst_size == 8) begin
+					case (in_addr[2:0])
+						0: wbblock = {loadedblock[63:8],in_data[7:0]};
+						1: wbblock = {loadedblock[63:16],in_data[7:0],loadedblock[7:0]};
+						2: wbblock = {loadedblock[63:24],in_data[7:0],loadedblock[15:0]};
+						3: wbblock = {loadedblock[63:32],in_data[7:0],loadedblock[23:0]};
+						4: wbblock = {loadedblock[63:40],in_data[7:0],loadedblock[31:0]};
+						5: wbblock = {loadedblock[63:48],in_data[7:0],loadedblock[39:0]};
+						6: wbblock = {loadedblock[63:56],in_data[7:0],loadedblock[47:0]};
+						7: wbblock = {in_data[15:0],loadedblock[55:0]};
+					endcase
+				end
+
 				//making those 8 bytes to be zero
 				tempLD = (ALLONES << (in_addr[5:3] * 64));
 				tempLD = ~tempLD;
 				hitCacheLine = hitCacheLine & tempLD;
+
+
 				//writing the 8 bytes of in_data to the desired location
-				tempLD = in_data << (in_addr[5:3] * 64);
+				tempLD = wbblock << (in_addr[5:3] * 64);
 				hitCacheLine = hitCacheLine | tempLD;
 				prev_in_addr = in_addr;
 				writeback = 1;
