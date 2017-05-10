@@ -207,6 +207,10 @@ i_execute
     wire dataselect;
     wire MEMEX_wbactive;
     wire MEMWB_ecall;
+    wire MEMWB_pend_write;
+    wire [3:0] MEMWB_size;
+    wire [63:0] MEMWB_value;
+    wire [63:0] MEMWB_addr;
 
 memoryMod
 #(              
@@ -242,6 +246,10 @@ i_memory
     .dataselect(dataselect),
     .MEMWB_wbactive(MEMWB_wbactive),
     .MEMWB_ecall(MEMWB_ecall),
+    .MEMWB_pend_write(MEMWB_pend_write),
+    .MEMWB_size(MEMWB_size),
+    .MEMWB_value(MEMWB_value),
+    .MEMWB_addr(MEMWB_addr),
 
 //bus interface
         .bus_reqcyc(bus_reqcyc),
@@ -271,6 +279,11 @@ i_writeback
 	.reset(reset),
 	.dest_reg(MEMWB_rd),
 	.MEMWB_ecall(MEMWB_ecall),
+	.MEMWB_pend_write(MEMWB_pend_write),
+	.MEMWB_size(MEMWB_size),
+	.MEMWB_value(MEMWB_value),
+	.MEMWB_addr(MEMWB_addr),
+
 	.MEMWB_wbactive(MEMWB_wbactive),
 	.dataselect(dataselect),
 	.mewb_aluresult(MEMWB_aluresult),

@@ -32,6 +32,10 @@ output [63:0] memwb_loadeddata,
 output load_str_done,
 output MEMEX_stall,
 output dataselect,
+output MEMWB_pend_write,
+    output [3:0] MEMWB_size,
+    output [63:0] MEMWB_value,
+    output [63:0] MEMWB_addr,
 
 //interface for bus arbiter
 
@@ -111,6 +115,7 @@ always_comb begin
 				hitCacheLine = Set2data[in_addr[14:6]];
 			end
 			if (load==1) begin
+				MEMWB_pend_write = 0;
 				tempLD = (ALLONES << (in_addr[5:3] * 64)) & hitCacheLine;
 				//$display("our expression = %x", (ALLONES << (in_addr[5:2] * 32)));
 				//$display("cacheLine      = %x", data[in_addr[14:6]]);
@@ -156,6 +161,8 @@ always_comb begin
 				//BO =  in_addr[5:2]; 
 				//instr_reg = data[in_addr[14:6]][];
 			end else begin
+				MEMWB_pend_write = 1;
+				MEMWB_addr = in_addr;
 				$display("store instruction , in_addr = %x in_data = %x", in_addr,in_data);
 				tempLD = (ALLONES << (in_addr[5:3] * 64)) & hitCacheLine;
 				loadedblock = tempLD >> (in_addr[5:3] * 64);
@@ -163,12 +170,18 @@ always_comb begin
 				
 				if (ldst_size == 64) begin
 					wbblock = in_data;
+					MEMWB_value = in_data;
+					MEMWB_size = 8;
 				end else if (ldst_size == 32) begin
+					MEMWB_size = 4;
+					MEMWB_value = in_data[31:0];
 					case (in_addr[2])
 						0: wbblock = {loadedblock[63:32],in_data[31:0]};
 						1: wbblock = {in_data[31:0],loadedblock[31:0]};
 					endcase
 				end else if (ldst_size == 16) begin
+					MEMWB_size = 2;
+					MEMWB_value = in_data[15:0];
 					case (in_addr[2:1])
 						0: wbblock = {loadedblock[63:16],in_data[15:0]};
 						1: wbblock = {loadedblock[63:32],in_data[15:0],loadedblock[15:0]};
@@ -176,6 +189,8 @@ always_comb begin
 						3: wbblock = {in_data[15:0],loadedblock[47:0]};
 					endcase
 				end else if (ldst_size == 8) begin
+					MEMWB_size = 1;
+					MEMWB_value = in_data[7:0];
 					case (in_addr[2:0])
 						0: wbblock = {loadedblock[63:8],in_data[7:0]};
 						1: wbblock = {loadedblock[63:16],in_data[7:0],loadedblock[7:0]};
@@ -211,12 +226,14 @@ always_comb begin
 			dataselect = 0;
 			//instr_reg = 0;
 			writeback = 0;
+			MEMWB_pend_write = 0;
 		end
 	end else begin //not a memory instruction
 		MEMEX_stall = 0;
 		dataselect = 0;
 		cache_hit = 1;
 		writeback = 0;
+		MEMWB_pend_write = 0;
 	end
 end
 

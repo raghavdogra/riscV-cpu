@@ -33,6 +33,11 @@ module memoryMod
     input next_ldst_unsign,
     input next_EXMEM_ecall,
 
+    output MEMWB_pend_write,
+    output [3:0] MEMWB_size,
+    output [63:0] MEMWB_value,
+    output [63:0] MEMWB_addr,
+
     output MEMWB_ecall,
     output MEMWB_wbactive,
     output [63:0] memwb_aluresult,
@@ -93,6 +98,10 @@ i_dcache
   .load_str_done(load_str_done),
   .MEMEX_stall(MEMEX_stall),
   .dataselect(dataselect),
+  .MEMWB_pend_write(MEMWB_pend_write),
+  .MEMWB_size(MEMWB_size),
+  .MEMWB_value(MEMWB_value),
+  .MEMWB_addr(MEMWB_addr),
 
 //Bus Arbiter Interface
 	.dcache_busreq(dcache_busreq),

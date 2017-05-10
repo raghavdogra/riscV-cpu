@@ -10,6 +10,11 @@ input MEMWB_wbactive,
 input MEMWB_ready,
 input MEMWB_ecall,
 
+input MEMWB_pend_write,
+input [3:0] MEMWB_size,
+input [63:0] MEMWB_value,
+input [63:0] MEMWB_addr,
+
 output ecalldone,
 output [5:0] WBEX_rd,
 output [63:0] WBEX_rdval,
@@ -37,6 +42,9 @@ always_ff @(posedge clk) begin
 	end else if (MEMWB_ecall == 1) begin
 		do_ecall(regfile.gpr[17], regfile.gpr[10], regfile.gpr[11], regfile.gpr[12], regfile.gpr[13], regfile.gpr[14], regfile.gpr[15], regfile.gpr[16], regfile.gpr[10]);
 		myecalldone <= 1;
+	end
+	if (MEMWB_pend_write == 1) begin
+		do_pending_write(MEMWB_addr, MEMWB_value, MEMWB_size);
 	end
 end
 end
