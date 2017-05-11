@@ -57,6 +57,7 @@ logic Set2dirty [511:0];
 
 
 logic [63:0] cacheLineAddress;
+logic [63:0] blockAddress;
 logic [63:0] prev_in_addr;
 
 logic [63:0] loadedblock;
@@ -222,6 +223,7 @@ always_comb begin
 		end else begin //cache miss case
 			//load_str_done = 0;
 			cache_hit = 0;	//to start memory fetch
+			blockAddress = {in_addr[63:6],6'b000000};
 			MEMEX_stall = 1;	
 			dataselect = 0;
 			//instr_reg = 0;
@@ -285,7 +287,7 @@ end
 		dcache_busidle = 0;
                 if ({bus_reqack,bus_respcyc} == 2'bx1) begin
 			cache_line = bus_resp;
-			cacheLineAddress = in_addr;
+			cacheLineAddress = blockAddress;
                         next_memoryState = memoryReading;
                 end
         end
@@ -322,7 +324,7 @@ if (invalidate == 0) begin
 			dcache_busreq <= 0;
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
                         bus_respack <= 0;
-                        bus_req <= in_addr;
+                        bus_req <= blockAddress;
                         bus_reqcyc <= 1;
                         memoryState <= memoryRequest;
 			missCacheLine <= 0;

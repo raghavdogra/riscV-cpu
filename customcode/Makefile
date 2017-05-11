@@ -14,7 +14,7 @@ STRIP=$(ARCH)strip
 
 all: addnum.c
 
-	$(CC) -c -o a.o branchCheck.c
+	$(CC) -c -o a.o addnum.c
 
 	$(STRIP) a.o
 

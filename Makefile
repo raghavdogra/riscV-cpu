@@ -1,6 +1,6 @@
 .PHONY: all run clean submit
 
-RUNELF=/home/rdogra/sample.o
+RUNELF=/home/rdogra/cpuproject/customcode/a.o
 
 TRACE?=--trace
 HAVETLB=n

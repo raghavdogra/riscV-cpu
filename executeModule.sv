@@ -20,12 +20,12 @@ module executeMod
     input MEMEX_stall,
     input MEMEX_wbactive,
     input WBEX_wbactive,
-    output [63:0] target_pc,
-    output branch,
     input IDEX_ready,
     output [63:0] exmm_aluresult,
     output [63:0] EXMEM_rs2,
     output [5:0] dest_reg,
+    output branch,
+    output [63:0] target_pc,
     output mem_active,
     output [7:0] ldst_size,
     output ldst_unsign,
@@ -74,7 +74,7 @@ end
 	end
 	else begin
     		//  exmm_aluresult = immediate;
-		//$display("%0s", opcode);
+		$display("%0s", opcode);
 		regfile.gpr[0] <= 0;
 		if(IDEX_ready == 1 && MEMEX_stall == 0) begin 
 			if(branch == 0) begin
@@ -352,13 +352,14 @@ always_comb begin
                         exmm_aluresult = IDEX_npc + temp;
                         end
  		"jal": begin 
-			temp = IDEX_npc + immediate + 4;
-                        exmm_aluresult = temp;
+			branch = 1;
+			target_pc = IDEX_npc + immediate;
 			end
 		"jalr": begin
+			branch = 1;
 			temp = rs1 + immediate;
 			temp[0] = 0;
- 			exmm_aluresult = temp + 4;
+ 			target_pc = temp;
                 	end
 		"slli": begin
 			exmm_aluresult = rs1 << immediate[4:0];

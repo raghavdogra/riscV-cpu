@@ -108,7 +108,24 @@ always_comb begin
         	end;
 		
 	//	pcint = pc;
-         	if (instr_reg[6:0] == 7'b0110011) begin
+		if (instr_reg[6:0] == 7'b1101111) begin
+			opcode = "jal";
+			immediate = {instr_reg[31],instr_reg[19:12],instr_reg[20],instr_reg[30:21],1'b0};
+			rd =instr_reg[11:7];
+         	end else if (instr_reg[6:0] == 7'b0110111) begin
+         		opcode = "lui";
+			rd =instr_reg[11:7];
+			immediate = instr_reg[31:12];
+         	end else if (instr_reg[6:0] == 7'b0010111) begin
+         		opcode = "auipc";
+			rd =instr_reg[11:7];
+			immediate = instr_reg[31:12];
+         	end else if (instr_reg[6:0] == 7'b1100111) begin
+         		opcode = "jalr";
+			rd =instr_reg[11:7];
+			immediate = instr_reg[31:20];
+			rs1 = regfile.gpr[instr_reg[19:15]];
+		end else if (instr_reg[6:0] == 7'b0110011) begin
                 	case({instr_reg[30], instr_reg[25], instr_reg[14:12]})
                         	5'b00000: opcode = "add";
                         	5'b10000: opcode = "sub";

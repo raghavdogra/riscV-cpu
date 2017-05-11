@@ -84,6 +84,7 @@ end
   always_ff @ (posedge clk) begin
 	if(reset) begin
 		pc <= entry;
+		regfile.gpr[2] <= stackptr;
 	end
 	else begin
 		if(data_ack == 1 && IDIF_stall == 0) begin

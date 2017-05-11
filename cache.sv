@@ -43,6 +43,7 @@ logic [511:0] Set2data [511:0];
 logic [48:0] Set2tag [511:0];
 
 logic [63:0] cacheLineAddress;
+logic [63:0] blockAddress;
 
 logic [511:0] hitCacheLine;
 logic [511:0] missCacheLine;
@@ -80,6 +81,7 @@ always_comb begin
 	end else begin
 		data_ack = 0;
 		cache_hit = 0;
+		blockAddress = {pc[63:6],6'b000000};
 		//instr_reg = 0;
 	end
 end
@@ -110,7 +112,7 @@ end
 		icache_busidle = 0;
                 if ({bus_reqack,bus_respcyc} == 2'bx1) begin
 			cache_line = bus_resp;
-			cacheLineAddress = pc;
+			cacheLineAddress = blockAddress;
                         next_memoryState = memoryReading;
                 end
         end
@@ -142,7 +144,7 @@ always_ff @(posedge clk) begin
 			icache_busreq <= 0;
                         bus_reqtag <= `SYSBUS_READ << 8 | `SYSBUS_MEMORY << 12;
                         bus_respack <= 0;
-                        bus_req <= pc;
+                        bus_req <= blockAddress;
                         bus_reqcyc <= 1;
                         memoryState <= memoryRequest;
 			missCacheLine <= 0;
