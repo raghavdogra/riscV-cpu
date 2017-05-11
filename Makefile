@@ -1,6 +1,5 @@
 .PHONY: all run clean submit
-
-RUNELF=/home/rdogra/cpuproject/customcode/a.o
+RUNELF=/home/mjadhav/cse502finalproject/sample_.o
 
 TRACE?=--trace
 HAVETLB=n

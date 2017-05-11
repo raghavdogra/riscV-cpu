@@ -53,6 +53,17 @@ getreg gr_name();
     logic signed [19:0] immediate;
     logic [64:0] IDEX_npc;
 
+    logic rs1forward;
+    logic rs2forward;
+
+    logic [64:0] tempopcode;
+    logic [5:0] temprd;
+    logic signed [63:0] temprs1;
+    logic signed [63:0] temprs2;
+    logic signed [19:0] tempimmediate;
+    logic [63:0] tempIDEX_npc;
+
+
     logic signed [63:0] pcint;
 
     logic bt;
@@ -69,58 +80,80 @@ getreg gr_name();
         EXMEM_ready <= 0;
     end
 end
- 
+
+
+always_comb begin
+
+        if(dest_reg == next_rs1reg && EXMEM_wbactive == 1 && load == 1) begin
+                //stall
+        end
+        else if(dest_reg == next_rs1reg && EXMEM_wbactive == 1) begin
+                temprs1 = exmm_aluresult;
+                rs1forward = 1;
+        end else if(next_rs1reg == MEMEX_rd && MEMEX_wbactive == 1) begin
+                temprs1 = MEMEX_rdval;
+                rs1forward = 1;
+        end else if(next_rs1reg == WBEX_rd && WBEX_wbactive == 1)begin
+                temprs1 = WBEX_rdval;
+                rs1forward = 1;
+        end else begin
+                temprs1 = next_rs1;
+                rs1forward = 1;
+        end
+
+        if (dest_reg == next_rs2reg && EXMEM_wbactive == 1 && load == 1) begin
+
+        end else if (dest_reg == next_rs2reg && EXMEM_wbactive == 1) begin
+                temprs2 = exmm_aluresult;
+                rs2forward = 1;
+        end else if(next_rs2reg == MEMEX_rd && MEMEX_wbactive == 1) begin
+                temprs2 = MEMEX_rdval;
+                rs2forward = 1;
+        end else if(next_rs2reg == WBEX_rd && WBEX_wbactive == 1) begin
+                temprs2 = WBEX_rdval;
+                rs2forward = 1;
+        end else begin
+                temprs2 = next_rs2;
+                rs2forward = 1;
+        end
+end
+     
 
    always_ff @(posedge clk) begin
-     	if (reset) begin
-	end
-	else begin
-    		//  exmm_aluresult = immediate;
-//		$display("%0s", opcode);
-		regfile.gpr[0] <= 0;
-		if(IDEX_ready == 1 && MEMEX_stall == 0) begin 
-			if(branch == 0) begin
-				opcode <= next_opcode;
-				immediate <= next_immediate;
-				if(dest_reg == next_rs1reg && EXMEM_wbactive == 1) begin
-					rs1 <= exmm_aluresult;
-				end else if(next_rs1reg == MEMEX_rd && MEMEX_wbactive == 1) begin
-                                	rs1 <= MEMEX_rdval;
-				end else if(next_rs1reg == WBEX_rd && WBEX_wbactive == 1)begin
-					rs1 <= WBEX_rdval;
-				end else begin	
-					rs1 <= next_rs1;
-				end
-				if (dest_reg == next_rs2reg && EXMEM_wbactive == 1) begin
-					rs2 <= exmm_aluresult;
-                        	end else if(next_rs2reg == MEMEX_rd && MEMEX_wbactive == 1) begin
-                                	rs2 <= MEMEX_rdval;
-				end else if(next_rs2reg == WBEX_rd && WBEX_wbactive == 1) begin
-					rs2 <= WBEX_rdval;
-				end else begin	
-					rs2 <= next_rs2;
-				end
-				IDEX_npc <= next_IDEX_npc;
-				rd <= next_rd;
-			end else begin
-				opcode <= "addi";
-				rs1 <= 0;
-				rs2 <= 0;
-				rd <= 0;
-				immediate <=0; 
-				IDEX_npc <= next_IDEX_npc;
-			end
-		end else begin 
-       		 	opcode <= opcode;
-        		rd <= rd;
-        		rs1 <= rs1;
-        		rs2 <= rs2;
-        		immediate <= immediate;
-        		IDEX_npc <= IDEX_npc;
-		end
+        if (reset) begin
+        end
+        else begin
+                //  exmm_aluresult = immediate;
+                regfile.gpr[0] <= 0;
+                if(IDEX_ready == 1 && MEMEX_stall == 0) begin
+                        if(branch == 0) begin
+                                opcode <= next_opcode;
+                                immediate <= next_immediate;
+                                rs1 <= temprs1;
+                                rs2 <= temprs2;
+                                IDEX_npc <= next_IDEX_npc;
+                                rd <= next_rd;
+                        end else begin
+                                opcode <= "addi";
+                                rs1 <= 0;
+                                rs2 <= 0;
+                                rd <= 0;
+                                immediate <=0;
+                                IDEX_npc <= next_IDEX_npc;
+                        end
+                end else begin
+                        opcode <= opcode;
+                        rd <= rd;
+                        rs1 <= rs1;
+                        rs2 <= rs2;
+                        immediate <= immediate;
+                        IDEX_npc <= IDEX_npc;
+                end
       end
    end
 
+
+ 
 always_comb begin
 	if(MEMEX_stall == 1) begin
 		EXID_stall = 1;
