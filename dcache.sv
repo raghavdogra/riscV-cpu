@@ -151,7 +151,7 @@ always_comb begin
 						7: memwb_loadeddata = loadedblock[63:56];
 					endcase
 				end
-
+				$display("LOADING DATA from address %x the data %x", in_addr,memwb_loadeddata );
 				cache_hit = 1;
 				dataselect = 1;
 				MEMEX_stall = 0;
@@ -203,6 +203,7 @@ always_comb begin
 						7: wbblock = {in_data[15:0],loadedblock[55:0]};
 					endcase
 				end
+					$display("STORING DATA wbblk = %x to addr %x \n", wbblock, in_addr);
 
 				//making those 8 bytes to be zero
 				tempLD = (ALLONES << (in_addr[5:3] * 64));
@@ -245,13 +246,13 @@ always_ff @(posedge clk) begin
 if (invalidate == 0) begin
 	if (writeback == 1) begin
 			if (prev_in_addr[63:15]==Set1tag[prev_in_addr[14:6]] ) begin
-				$display(" writing using Set 1 setting dirty bit 1");
+			//	$display(" writing using Set 1 setting dirty bit 1");
 				Set1data[prev_in_addr[14:6]] <= hitCacheLine;
 				Set1tag[prev_in_addr[14:6]] <= prev_in_addr[63:15];
 				Set1dirty[prev_in_addr[14:6]] <= 1;
 			end else begin
-				$display(" writing using Set 2 setting dirtybit 1");
-				$display("hcl= %x ",hitCacheLine);
+			//	$display(" writing using Set 2 setting dirtybit 1");
+			//	$display("hcl= %x ",hitCacheLine);
 				Set2data[prev_in_addr[14:6]] <= hitCacheLine;
 				Set2tag[prev_in_addr[14:6]] <= prev_in_addr[63:15];
 				Set2dirty[prev_in_addr[14:6]] <= 1;
@@ -328,6 +329,7 @@ if (invalidate == 0) begin
                         bus_reqcyc <= 1;
                         memoryState <= memoryRequest;
 			missCacheLine <= 0;
+			$display("CACHE MISSSS of address %x %x", in_addr, blockAddress);
 	end
 	if (next_memoryState == memoryReading) begin
         	//if(cache_line == 64'h0000000000000000)
@@ -344,12 +346,12 @@ if (invalidate == 0) begin
 	if (memoryState == memoryReading && next_memoryState == memoryIdle) begin
 			if (($random()<0)) begin
 				if(Set1dirty[in_addr[14:6]] == 0) begin
-					$display("using Set 1, dirty bit was 0 for in_addr %x",in_addr);
+				//	$display("using Set 1, dirty bit was 0 for in_addr %x",in_addr);
 					Set1data[in_addr[14:6]] <= missCacheLine;
 					Set1tag[in_addr[14:6]] <= in_addr[63:15];
 					Set1dirty[in_addr[14:6]] <= 0;
 				end else begin
-					$display("using Set 1, dirty bit was 1 for in_addr %x",in_addr);
+				//	$display("using Set 1, dirty bit was 1 for in_addr %x",in_addr);
 					dirtyWriteback <= 1;
 					dirtyCacheLine <= Set1data[in_addr[14:6]];
 					write_addr <= {Set1tag[in_addr[14:6]],in_addr[14:6],6'b000000};
@@ -357,12 +359,12 @@ if (invalidate == 0) begin
 				end
 			end else begin
 				if(Set2dirty[in_addr[14:6]] == 0) begin
-					$display("using Set 2, dirty bit was 0 for in_addr %x",in_addr);
+			//		$display("using Set 2, dirty bit was 0 for in_addr %x",in_addr);
 					Set2data[in_addr[14:6]] <= missCacheLine;
 					Set2tag[in_addr[14:6]] <= in_addr[63:15];
 					Set2dirty[in_addr[14:6]] <= 0;
 				end else begin
-					$display("using Set 2, dirty bit was 1 for in_addr %x",in_addr);
+			//		$display("using Set 2, dirty bit was 1 for in_addr %x",in_addr);
 					dirtyWriteback <= 1;
 					dirtyCacheLine <= Set2data[in_addr[14:6]];
 					write_addr <= {Set2tag[in_addr[14:6]],in_addr[14:6],6'b000000};

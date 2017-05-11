@@ -53,6 +53,8 @@ getreg gr_name();
     logic signed [19:0] immediate;
     logic [64:0] IDEX_npc;
 
+    logic signed [63:0] pcint;
+
     logic bt;
     int x;
     logic [32:0] name;
@@ -74,7 +76,7 @@ end
 	end
 	else begin
     		//  exmm_aluresult = immediate;
-		$display("%0s", opcode);
+//		$display("%0s", opcode);
 		regfile.gpr[0] <= 0;
 		if(IDEX_ready == 1 && MEMEX_stall == 0) begin 
 			if(branch == 0) begin
@@ -137,6 +139,7 @@ always_comb begin
 	EXMEM_ecall = 0;
 	ldst_size = 0;
 	ldst_unsign = 0;
+	pcint = IDEX_npc;
 	case(opcode)	
 	    	"ecall": begin
 		      	EXMEM_ecall = 1;
@@ -217,7 +220,7 @@ always_comb begin
 			EXMEM_wbactive = 0;
 				if(rs1 < rs2) begin
 					branch = 1;
-					target_pc = IDEX_npc + immediate;
+					target_pc = pcint + immediate;
 				end else begin
 					branch = 0;
 				end
@@ -228,27 +231,28 @@ always_comb begin
 			getAbs(rs2,abs1);
 				if(abs < abs1) begin
 					branch = 1;
-					target_pc = IDEX_npc + immediate;
+					target_pc = pcint + immediate;
 				end else begin
 					branch = 0;
 				end
 			end	
 		"bge": begin
 			EXMEM_wbactive = 0;
-				if(rs1 > rs2) begin
+				if(rs1 >= rs2) begin
 					branch = 1;
-					target_pc = IDEX_npc + immediate;
+					target_pc = pcint + immediate;
 				end else begin
 					branch = 0;
 				end
+			$display("BGE setting targetpc =%d (IDEXnpc + immediate ) (%x(hex) %d)",target_pc, pcint, immediate);
 			end	
 		"bgeu": begin
 			EXMEM_wbactive = 0;
 			getAbs(rs1,abs);
 			getAbs(rs2,abs1);
-				if(abs > abs1) begin
+				if(abs >= abs1) begin
 					branch = 1;
-					target_pc = IDEX_npc + immediate;
+					target_pc = pcint + immediate;
 				end else begin
 					branch = 0;
 				end
@@ -257,7 +261,7 @@ always_comb begin
 			EXMEM_wbactive = 0;
 				if(rs1 == rs2) begin
 					branch = 1;
-					target_pc = IDEX_npc + immediate;
+					target_pc = pcint + immediate;
 				end else begin
 					branch = 0;
 				end

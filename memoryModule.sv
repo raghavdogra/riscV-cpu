@@ -193,7 +193,11 @@ always_comb begin
 	memwb_aluresult = exmem_aluresult;
 	memwb_rd = exmem_rd;
 	MEMEX_rd = exmem_rd;
-	MEMEX_rdval = exmem_aluresult;
+	if (dataselect == 0) begin 
+		MEMEX_rdval = exmem_aluresult;
+	end else begin
+		MEMEX_rdval = memwb_loadeddata;
+	end
 	MEMWB_ecall = exmem_ecall;
 end
 

@@ -28,6 +28,7 @@ logic signed [11:0] temp;
 logic signed [12:0] temp_addr;
 logic signed [64:0] address;
 logic signed [20:0] offset;
+logic signed [11:0] sign12;
 logic [31:0] instr_reg;
 //logic X;
 
@@ -208,8 +209,9 @@ always_comb begin
                         rs2 = regfile.gpr[instr_reg[24:20]];
                         IDEX_rs1reg = instr_reg[19:15];
                         IDEX_rs2reg = instr_reg[24:20];
-                        immediate = {instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0}; 
-
+                        temp = {instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0}; 
+			immediate = temp;
+			$display("BGE setting immediate =%d",immediate);
         	end else if (instr_reg[6:0]  == 7'b0100011) begin
                 	temp = {instr_reg[31:25],instr_reg[11:7]}; 
 			case (instr_reg[14:12])
