@@ -21,8 +21,8 @@ module executeMod
     input MEMEX_wbactive,
     input WBEX_wbactive,
     input IDEX_ready,
-    output [63:0] exmm_aluresult,
-    output [63:0] EXMEM_rs2,
+    output signed [63:0] exmm_aluresult,
+    output signed [63:0] EXMEM_rs2,
     output [5:0] dest_reg,
     output branch,
     output [63:0] target_pc,
@@ -317,6 +317,7 @@ always_comb begin
 			mem_active = 1;
 			EXMEM_wbactive = 0;
 			ldst_size = 32;
+			$display("SWWW setting exmemaluresult =%d %x   (rs1 + immediate ) (%x(hex) %d)",exmm_aluresult,exmm_aluresult, rs1, immediate);
 		      end
                 "sd": begin
 			exmm_aluresult = rs1 + immediate;
@@ -466,14 +467,14 @@ always_comb begin
  		"jal": begin 
 			branch = 1;
 			target_pc = pcint + immediate;
-			exmm_aluresult = target_pc + 4;
+			exmm_aluresult = pcint + 4;
 			end
 		"jalr": begin
 			branch = 1;
 			temp = rs1 + immediate;
 			temp[0] = 0;
  			target_pc = temp;
-			exmm_aluresult = target_pc + 4;
+			exmm_aluresult = pcint + 4;
                 	end
 		"slli": begin
 			exmm_aluresult = rs1 << immediate[4:0];
