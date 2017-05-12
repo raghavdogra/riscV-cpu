@@ -53,6 +53,11 @@ getreg gr_name();
     logic signed [19:0] immediate;
     logic [64:0] IDEX_npc;
 
+    logic EX_stall;
+    logic waitonecycle;
+    logic onecycledone;
+    logic waitonecyclecopy;
+
     logic rs1forward;
     logic rs2forward;
 
@@ -82,27 +87,85 @@ getreg gr_name();
 end
 
 
+always_ff @(posedge clk) begin
+	if(waitonecycle == 1) begin
+		onecycledone <= 1;
+	end else begin
+		onecycledone <= 0;
+	end
+end
+
+
 always_comb begin
 
-        if(dest_reg == next_rs1reg && EXMEM_wbactive == 1 && load == 1) begin
+	if (onecycledone == 1) begin
+			waitonecycle = 0;
+			EX_stall = 0;
+				if(next_rs1reg == MEMEX_rd && MEMEX_wbactive == 1) begin
+                temprs1 = MEMEX_rdval;
+                EX_stall = 0;
+                rs1forward = 0;
+                waitonecycle = 0;
+	        end else if(next_rs1reg == WBEX_rd && WBEX_wbactive == 1)begin
+        	        temprs1 = WBEX_rdval;
+               		 rs1forward = 1;
+               		 EX_stall = 0;
+           		   waitonecycle = 0;
+       		 end else begin
+                	temprs1 = next_rs1;
+               		 EX_stall = 0;
+             		   rs1forward = 1;
+              		  waitonecycle = 0;
+      		  end
+
+
+	end else if(dest_reg == next_rs1reg && EXMEM_wbactive == 1 && load == 1) begin
                 //stall
-        end
-        else if(dest_reg == next_rs1reg && EXMEM_wbactive == 1) begin
+		EX_stall = 1;
+		waitonecycle = 1;
+		waitonecyclecopy = 1;
+        end else if(dest_reg == next_rs1reg && EXMEM_wbactive == 1) begin
                 temprs1 = exmm_aluresult;
                 rs1forward = 1;
+		EX_stall = 0;
+		waitonecycle = 0;
         end else if(next_rs1reg == MEMEX_rd && MEMEX_wbactive == 1) begin
                 temprs1 = MEMEX_rdval;
-                rs1forward = 1;
+		EX_stall = 0;
+                rs1forward = 0;
+		waitonecycle = 0;
         end else if(next_rs1reg == WBEX_rd && WBEX_wbactive == 1)begin
                 temprs1 = WBEX_rdval;
                 rs1forward = 1;
+		EX_stall = 0;
+		waitonecycle = 0;
         end else begin
                 temprs1 = next_rs1;
+		EX_stall = 0;
                 rs1forward = 1;
+		waitonecycle = 0;
         end
 
-        if (dest_reg == next_rs2reg && EXMEM_wbactive == 1 && load == 1) begin
+	if (onecycledone == 1) begin
+			waitonecycle = 0;
+			EX_stall = 0;
+		if(next_rs2reg == MEMEX_rd && MEMEX_wbactive == 1) begin
+                temprs2 = MEMEX_rdval;
+                rs2forward = 1;
+   		     end else if(next_rs2reg == WBEX_rd && WBEX_wbactive == 1) begin
+   	             temprs2 = WBEX_rdval;
+    	            rs2forward = 1;
+      		  end else begin
+      	          temprs2 = next_rs2;
+      	          rs2forward = 1;
+       		 end
 
+        end else if (dest_reg == next_rs2reg && EXMEM_wbactive == 1 && load == 1) begin
+		EX_stall = 1;
+		waitonecycle = 1;
+		waitonecyclecopy = 1;
+
+	
         end else if (dest_reg == next_rs2reg && EXMEM_wbactive == 1) begin
                 temprs2 = exmm_aluresult;
                 rs2forward = 1;
@@ -125,7 +188,7 @@ end
         else begin
                 //  exmm_aluresult = immediate;
                 regfile.gpr[0] <= 0;
-                if(IDEX_ready == 1 && MEMEX_stall == 0) begin
+                if(IDEX_ready == 1 && EXID_stall == 0) begin
                         if(branch == 0) begin
                                 opcode <= next_opcode;
                                 immediate <= next_immediate;
@@ -155,11 +218,7 @@ end
 
  
 always_comb begin
-	if(MEMEX_stall == 1) begin
-		EXID_stall = 1;
-	end else begin
-		EXID_stall = 0;
-	end
+		EXID_stall = (MEMEX_stall || EX_stall);
 end
 
 always_comb begin
