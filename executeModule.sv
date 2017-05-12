@@ -465,13 +465,15 @@ always_comb begin
                         end
  		"jal": begin 
 			branch = 1;
-			target_pc = IDEX_npc + immediate;
+			target_pc = pcint + immediate;
+			exmm_aluresult = target_pc + 4;
 			end
 		"jalr": begin
 			branch = 1;
 			temp = rs1 + immediate;
 			temp[0] = 0;
  			target_pc = temp;
+			exmm_aluresult = target_pc + 4;
                 	end
 		"slli": begin
 			exmm_aluresult = rs1 << immediate[4:0];

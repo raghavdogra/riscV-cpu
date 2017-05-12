@@ -107,6 +107,14 @@ always_comb begin
                 	//i_execute.printRegister;
 			//$finish;
         	end;
+
+
+               rs1 = regfile.gpr[instr_reg[19:15]];
+               IDEX_rs1reg = instr_reg[19:15];
+               rs2 = regfile.gpr[instr_reg[24:20]];
+               IDEX_rs2reg = instr_reg[24:20];
+               rd = instr_reg[11:7];
+
 		
 	//	pcint = pc;
 		if (instr_reg[6:0] == 7'b1101111) begin
