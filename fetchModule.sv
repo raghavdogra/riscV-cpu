@@ -77,7 +77,7 @@ always_comb begin
 	npc = pc + 4'h4;
     end else begin
 	npc = EXIF_targetpc;
-	$display("Got Target PC, %x", npc);
+//	$display("Got Target PC, %x", npc);
     end
 end
 

@@ -95,9 +95,15 @@ always_ff @(posedge clk) begin
 	end
 end
 
+//always_comb begin
+//        if (EXMEM_rs2 == 64'h000000003fbffff5 && mem_active == 1 && load == 0) begin
+ //               $display("BADDDDDDD EXMEM_rs2  opcode %s ", opcode);
+
+   //     end
+//end
 
 always_comb begin
-
+if (MEMEX_stall == 0) begin
 	if (onecycledone == 1) begin
 			waitonecycle = 0;
 			EX_stall = 0;
@@ -180,6 +186,7 @@ always_comb begin
                 rs2forward = 1;
         end
 end
+end
      
 
    always_ff @(posedge clk) begin
@@ -196,6 +203,15 @@ end
                                 rs2 <= temprs2;
                                 IDEX_npc <= next_IDEX_npc;
                                 rd <= next_rd;
+        			if (temprs2 == 64'h000000003fbffff5 && next_opcode == "sw") begin
+                			$display("BADDDDDDD EXMEM_rs2   ");
+                			$display("dest_reg   %x", dest_reg);
+                			$display("next_rs2reg   %x", next_rs2reg);
+                			$display("MEMEX_rd %x  MEMEX_rdval %x", MEMEX_rd, MEMEX_rdval);
+                			$display("WBEX_rd  %x    WBEX_rdval  %x ", WBEX_rd, WBEX_rdval);
+                			$display("prev opcode  %s   ",opcode);
+					
+        			end
                         end else begin
                                 opcode <= "addi";
                                 rs1 <= 0;
@@ -445,7 +461,7 @@ always_comb begin
                         end
 		"auipc": begin
 			temp = {immediate,3'h000};
-                        exmm_aluresult = IDEX_npc + temp;
+                        exmm_aluresult = pcint + temp;
                         end
  		"jal": begin 
 			branch = 1;

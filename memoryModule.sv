@@ -148,6 +148,13 @@ always_comb begin
 
 end
 
+
+always_comb begin
+	if (in_data == 64'h000000003fbffff5 && mem_active == 1 && loadread == 0) begin
+		$display("BADDDDDDD indata");
+	end
+end
+
 always_ff @(posedge clk) begin
     if (reset) begin
     end
