@@ -1,5 +1,5 @@
 `include "getreg.sv"
-
+`define ALUPRINTBATE
 
 module executeMod
 (
@@ -225,14 +225,15 @@ end
                                 immediate <=0;
                                 IDEX_npc <= next_IDEX_npc;
                         end
-		$display("ALU this instruction %x", IDEX_npc);
-		$display("ALU opcode %s   ",opcode);
-		$display("ALU actual val1  %d", rs1);
-		$display("ALU actual val2  %d", rs2);
-		$display("ALU rd_regno  %d",rd);
-		$display("ALU alu_result  %d", exmm_aluresult);
-		$display("target pc  %x", target_pc);
-		$display("ALU branch bool %d ", branch);
+`ifdef ALUPRINTBATE
+		$display("ALU branch bool %0d ", branch);
+		$display("ALU this instruction %0x", IDEX_npc);
+		$display("ALU alu_result  %0d", exmm_aluresult);
+		$display("ALU actual val1  %0d", rs1);
+		$display("ALU actual val2  %0d", rs2);
+		$display("ALU opcode %0s   ",opcode);
+		$display("ALU rd_regno  %0d",rd);
+`endif				
                 end else begin
                         opcode <= opcode;
                         rd <= rd;
@@ -266,6 +267,7 @@ always_comb begin
 	case(opcode)	
 	    	"ecall": begin
 		      	EXMEM_ecall = 1;
+			EXMEM_wbactive = 0;
 			end
 	    	"lb": begin
 			exmm_aluresult = rs1 + immediate;
@@ -317,6 +319,7 @@ always_comb begin
 			ldst_unsign = 1;
 		       end
 		"sb": begin
+			exmm_aluresult = rs1 + immediate;
 			mem_active = 1;
 			EXMEM_wbactive = 0;
 			ldst_size = 8;
@@ -353,9 +356,9 @@ always_comb begin
 			end	
 		"bltu": begin
 			EXMEM_wbactive = 0;
-			getAbs(rs1,abs);
-			getAbs(rs2,abs1);
-				if(abs < abs1) begin
+			//getAbs(rs1,abs);
+			//getAbs(rs2,abs1);
+				if($unsigned(rs1) < $unsigned(rs2)) begin
 					branch = 1;
 					target_pc = pcint + immediate;
 				end else begin
@@ -370,13 +373,15 @@ always_comb begin
 				end else begin
 					branch = 0;
 				end
+`ifdef ALUPRINT
 			$display("BGE setting targetpc =%d (IDEXnpc + immediate ) (%x(hex) %d)",target_pc, pcint, immediate);
+`endif				
 			end	
 		"bgeu": begin
 			EXMEM_wbactive = 0;
 			getAbs(rs1,abs);
 			getAbs(rs2,abs1);
-				if(abs >= abs1) begin
+				if($unsigned(rs1) >= $unsigned(rs2)) begin
 					branch = 1;
 					target_pc = pcint + immediate;
 				end else begin
@@ -388,6 +393,9 @@ always_comb begin
 				if(rs1 == rs2) begin
 					branch = 1;
 					target_pc = pcint + immediate;
+`ifdef ALUPRINT
+					$display("BEQ pcint = %d %x immediate = (%d %x) and targetpc = %x %d", pcint, pcint, immediate, immediate, target_pc,target_pc);
+`endif				
 				end else begin
 					branch = 0;
 				end
@@ -442,9 +450,9 @@ always_comb begin
 				exmm_aluresult = 0;
 			end
                 "sltiu": begin
-			getAbs(rs1,abs);
-			getAbs(immediate,abs1);
-                        if (abs < abs1)
+			//getAbs(rs1,abs);
+			//getAbs(immediate,abs1);
+                        if ($unsigned(rs1) < $unsigned(rs2))
                                 exmm_aluresult = 1;
                         else
                                 exmm_aluresult = 0;
@@ -457,9 +465,9 @@ always_comb begin
                                 exmm_aluresult = 0;
                         end
                 "sltu": begin
-                        getAbs(rs1,abs);
-                        getAbs(rs2,abs1);
-                        if (abs < abs1)
+                        //getAbs(rs1,abs);
+                        //getAbs(rs2,abs1);
+                        if ($unsigned(rs1) < $unsigned(rs2))
                                 exmm_aluresult = 1;
                         else
                                 exmm_aluresult = 0;
@@ -497,10 +505,10 @@ always_comb begin
 			exmm_aluresult = pcint + 4;
                 	end
 		"slli": begin
-			exmm_aluresult = rs1 << immediate[4:0];
+			exmm_aluresult = rs1 << immediate[5:0];
 			end
 		"srli": begin
-			exmm_aluresult = rs1 >> immediate[4:0];
+			exmm_aluresult = rs1 >> immediate[5:0];
 			end
 		"srai": begin
 			temp = rs1;
@@ -539,104 +547,133 @@ always_comb begin
                         exmm_aluresult = rs1 >> rs2[5:0];
                         end
                 "sra": begin
-                        temp = rs1;
-                        bt = temp[63];
-			x = rs2[5:0];
-			temp1 = rs2;
-                        temp = temp >> temp1[5:0];
-                        for (int i=63; i > (63-x); i--) begin
-                                        temp[i] = bt;
-                                end
-                        exmm_aluresult = temp;
+                        //temp = rs1;
+                        //bt = temp[63];
+			//x = rs2[5:0];
+			//temp1 = rs2;
+                        //temp = temp >> temp1[5:0];
+                        //for (int i=63; i > (63-x); i--) begin
+                          //              temp[i] = bt;
+                            //    end
+                        exmm_aluresult = rs1 >>> rs2[5:0];
                         end
                 "sllw": begin
-			sign32[0] = rs1;
-                        sign32[1] = rs2;
-                        sign32[2] = sign32[0] << sign32[1][4:0];
-                        exmm_aluresult = sign32[2];
-                        end
+                        	exmm_aluresult[31:0] = rs1[31:0] << rs2[4:0];
+                        	if(exmm_aluresult[31] == 1) begin
+					exmm_aluresult[63:32] = -1; 
+				end else begin
+					exmm_aluresult[63:32] = 0; 	
+                        	end
+			end
                 "srlw": begin
-			sign32[0] = rs1;
-                        sign32[1] = rs2;
-                        sign32[2] = sign32[0] >> sign32[1][4:0];
-                        exmm_aluresult = sign32[2];
+                        exmm_aluresult[31:0] = rs1[31:0] >> rs2[4:0];
+                        if(exmm_aluresult[31] == 1) begin
+				exmm_aluresult[63:32] = -1; 
+			end else begin
+				exmm_aluresult[63:32] = 0; 	
+                        end
+			//sign32[0] = rs1;
+                        //sign32[1] = rs2;
+                       // sign32[2] = sign32[0] >> sign32[1][4:0];
+                        //exmm_aluresult = sign32[2];
                       //  exmm_aluresult = rs1 >> rs2;
                         end
-                "sraw": begin
-                        sign32[0] = rs1;
-                        bt = sign32[0][31];
-			sign32[1] = rs2;
-			x = sign32[1][4:0];
-                        sign32[2] = sign32[0] >> sign32[1][4:0];
-                        for (int i=31; i > (31-x); i--) begin
-                                         sign32[2][i] = bt;
-                                end
-                        exmm_aluresult = sign32[2];
+                "sraw": begin	
+                        exmm_aluresult[31:0] = rs1[31:0] >>> rs2[4:0];
+                        if(exmm_aluresult[31] == 1) begin
+				exmm_aluresult[63:32] = -1; 
+			end else begin
+				exmm_aluresult[63:32] = 0; 	
+                        end
+                        //sign32[0] = rs1;
+                        //bt = sign32[0][31];
+			//sign32[1] = rs2;
+			//x = sign32[1][4:0];
+                        //sign32[2] = sign32[0] >> sign32[1][4:0];
+                        //for (int i=31; i > (31-x); i--) begin
+                          //               sign32[2][i] = bt;
+                            //    end
+                        //exmm_aluresult = sign32[2];
+			
                         end
 		"rem":  begin
                         exmm_aluresult = rs1 % rs2;
                         end
                 "remu": begin
-                        getAbs(rs1, abs);
-                        getAbs(rs2, abs1);
-                        exmm_aluresult = abs % abs1;
+                        //getAbs(rs1, abs);
+                        //getAbs(rs2, abs1);
+                        exmm_aluresult = $unsigned(rs1) % $unsigned(rs2);
                         end
                 "remw":  begin
-			sign32[0] = rs1;
-                        sign32[1] = rs2;
-                        sign32[2] = sign32[0] % sign32[1];
-                        exmm_aluresult = sign32[2];
+			//sign32[0] = rs1;
+                        //sign32[1] = rs2;
+                        //sign32[2] = sign32[0] % sign32[1];
+                        exmm_aluresult[31:0] = $signed(rs1[31:0] % rs2[31:0]) ;
                         end
                 "remuw": begin
-			sign32[0] = rs1;
-                        sign32[1] = rs2;
-                        getAbs(sign32[0], abs);
-                        getAbs(sign32[1], abs1);
-			sign32[2] = abs % abs1;
-                        exmm_aluresult = sign32[2];
+			//sign32[0] = rs1;
+                        //sign32[1] = rs2;
+                        //getAbs(sign32[0], abs);
+                        //getAbs(sign32[1], abs1);
+			//sign32[2] = abs % abs1;
+                        //exmm_aluresult = sign32[2];
+			 exmm_aluresult[31:0] = $unsigned(rs1[31:0]) % $unsigned(rs2[31:0]);
+                        if(exmm_aluresult[31] == 1) begin
+                                exmm_aluresult[63:32] = -1;
+                        end else begin
+                                exmm_aluresult[63:32] = 0;
+                        end
                         end
                 "div":  begin
                         exmm_aluresult = rs1 / rs2;
                         end
                 "divu": begin
-                        getAbs(rs1, abs);
-                        getAbs(rs2, abs1);
-                        exmm_aluresult = abs / abs1;
+                        //getAbs(rs1, abs);
+                        //getAbs(rs2, abs1);
+                        exmm_aluresult = $unsigned(rs1) / $unsigned(rs2);
                         end
                 "divw":  begin
-			sign32[0] = rs1;
-                        sign32[1] = rs2;
-                        sign32[2] = sign32[0] / sign32[1];
-                        exmm_aluresult = sign32[2];
+			//sign32[0] = rs1;
+                        //sign32[1] = rs2;
+                        //sign32[2] = sign32[0] / sign32[1];
+                        //exmm_aluresult = sign32[2];
+                        exmm_aluresult[31:0] = $signed(rs1[31:0] / rs2[31:0]) ;
                         end
                 "divuw": begin
-			sign32[0] = rs1;
-                        sign32[1] = rs2;
-                        getAbs(sign32[0], abs);
-                        getAbs(sign32[1], abs1);
-			sign32[2] = abs / abs1;
-                        exmm_aluresult = sign32[2];
+			//sign32[0] = rs1;
+                        //sign32[1] = rs2;
+                        //getAbs(sign32[0], abs);
+                        //getAbs(sign32[1], abs1);
+			//sign32[2] = abs / abs1;
+                        //exmm_aluresult = sign32[2];
+			 exmm_aluresult[31:0] = $unsigned(rs1[31:0]) / $unsigned(rs2[31:0]);
+                        if(exmm_aluresult[31] == 1) begin
+                                exmm_aluresult[63:32] = -1;
+                        end else begin
+                                exmm_aluresult[63:32] = 0;
+                        end
                         end
 		"mul":	 exmm_aluresult = rs1 * rs2;
 		"mulw": begin
-			sign32[0] = rs1;
-                        sign32[1] = rs2;
-                        sign32[2] = sign32[0] * sign32[1];
-                        exmm_aluresult = sign32[2];
+			//sign32[0] = rs1;
+                        //sign32[1] = rs2;
+                        //sign32[2] = sign32[0] * sign32[1];
+                        //exmm_aluresult = sign32[2];	
+                        exmm_aluresult = $signed(rs1[31:0] * rs2[31:0]) ;
 			end
 		"mulh": begin
 			sign128 = rs1 * rs2;
 			exmm_aluresult = sign128[127:64];
 			end
 		"mulhsu":begin
-                         getAbs(rs2, abs1);
-                         sign128 = rs1 * abs1;
+                         //getAbs(rs2, abs1);
+                         sign128 = $unsigned(rs1) * $unsigned(rs2);
                          exmm_aluresult = sign128[127:64];
 			end
 		"mulhu": begin
-			 getAbs(rs1, abs);
-                         getAbs(rs2, abs1);
-			 unsign128 = abs * abs1;
+			 //getAbs(rs1, abs);
+                         //getAbs(rs2, abs1);
+			 unsign128 = $unsigned(rs1) * $unsigned(rs2);
 			 exmm_aluresult = unsign128[127:64];
 			 end
 //		default: begin

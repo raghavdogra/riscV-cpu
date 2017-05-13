@@ -41,6 +41,17 @@ wire dcache_busidle;
 wire icache_busgrant;
 wire dcache_busgrant;
 
+logic invalidate;
+
+
+always_comb begin
+if ( bus_resptag == 12'h800 || bus_resptag == 16'h0800) begin
+        invalidate = 1;
+end
+end
+
+
+
 busarbiter
 i_busarbiter(
 

@@ -28,7 +28,7 @@ logic myecalldone;
 always_ff @(posedge clk) begin
 	if(reset) begin
 	end
-	else if( icachenotstall == 0) begin
+	else if( icachenotstall == 0 || MEMWB_ready == 0) begin
 		myecalldone <= myecalldone;
 	end
 	else begin
@@ -46,6 +46,7 @@ always_ff @(posedge clk) begin
 	end
 	if (MEMWB_pend_write == 1) begin
 		do_pending_write(MEMWB_addr, MEMWB_value, MEMWB_size);
+//		$display("WB do_pending_write sd phy_addr:           %d rs2_value:                   %d",MEMWB_addr,MEMWB_value);
 	end
 end
 end

@@ -56,7 +56,7 @@ always_ff @(posedge clk) begin
 		immediate = 0;
 	//	pcint = 0;
 	end else begin
-		if (ecallactive == 1) begin
+		if (ecallactive == 1 && icachenotstall == 1) begin
 			instr_reg <= 32'h00000013;
 			ecallstage <= 1;
 		
@@ -115,7 +115,7 @@ always_comb begin
                rs2 = regfile.gpr[instr_reg[24:20]];
                IDEX_rs2reg = instr_reg[24:20];
                rd = instr_reg[11:7];
-
+		ecallactive = 0;
 		
 	//	pcint = pc;
 		if (instr_reg[6:0] == 7'b1101111) begin
@@ -131,17 +131,22 @@ always_comb begin
 			rd =instr_reg[11:7];
 			immediate = instr_reg[31:12];
          	end else if (instr_reg[6:0] == 7'b1100111) begin
-         		opcode = "jalr";
-			rd =instr_reg[11:7];
-			immediate = instr_reg[31:20];
-			rs1 = regfile.gpr[instr_reg[19:15]];
+			if({instr_reg[12],instr_reg[13],instr_reg[14]} == 3'b000) begin	
+         			opcode = "jalr";
+				rd =instr_reg[11:7];
+				immediate = instr_reg[31:20];
+				rs1 = regfile.gpr[instr_reg[19:15]];
+			end else begin
+					opcode = "retur";
+				
+			end 
 		end else if (instr_reg[6:0] == 7'b0110011) begin
                 	case({instr_reg[30], instr_reg[25], instr_reg[14:12]})
                         	5'b00000: opcode = "add";
                         	5'b10000: opcode = "sub";
              	         	5'b00001: opcode = "sll";
                 	        5'b00010: opcode = "slt";
-         	                5'b00110: opcode = "sltu";
+         	                5'b00011: opcode = "sltu";
                 	        5'b00100: opcode = "xor";
                 	        5'b10101: opcode = "sra";
                      	    	5'b00101: opcode = "srl";
@@ -218,9 +223,8 @@ always_comb begin
                         rs2 = regfile.gpr[instr_reg[24:20]];
                         IDEX_rs1reg = instr_reg[19:15];
                         IDEX_rs2reg = instr_reg[24:20];
-                        temp = {instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0}; 
-			immediate = temp;
-			$display("BGE setting immediate =%d",immediate);
+			immediate = $signed({instr_reg[31],instr_reg[7],instr_reg[30:25],instr_reg[11:8],1'b0});
+			//$display("bge setting immediate =%d",immediate);
         	end else if (instr_reg[6:0]  == 7'b0100011) begin
                 	temp = {instr_reg[31:25],instr_reg[11:7]}; 
 			case (instr_reg[14:12])
@@ -287,28 +291,28 @@ always_comb begin
                        		3'b001: opcode = "csrrw";
                		endcase
         	end else begin
-                	case (instr_reg[6:0])
-                       		7'b0110111: begin
-                			rd = instr_reg[11:7];
-             				rs1 = 0;
-                			rs2 = 0;
-                			immediate = temp;
-                       		end
-                       		7'b0010111:  begin
-                			rd = instr_reg[11:7];
-                			rs1 = 0;
-                			rs2 = 0;
-                			immediate = temp;
-                       		end
-                       		7'b1101111: begin
+                	//case (instr_reg[6:0])
+                       		//7'b0110111: begin
+                		//	rd = instr_reg[11:7];
+             			//	rs1 = 0;
+                		//	rs2 = 0;
+                		//	immediate = temp;
+                       		//end
+                       		//7'b0010111:  begin
+                			//rd = instr_reg[11:7];
+                			//rs1 = 0;
+                			//rs2 = 0;
+                			//immediate = temp;
+                       		//end
+                       		//7'b1101111: begin
                        			offset[20:0] = {instr_reg[31],instr_reg[19:12],instr_reg[20],instr_reg[30:21],1'b0};
                        		//	address = pcint + offset;
-                       		end
-                       		7'b1100111: begin
+                       		//end
+                       		//7'b1100111: begin
 					opcode = "retur";
-                           		temp = instr_reg[31:20];
-                       		end
-             		endcase
+                           	//	temp = instr_reg[31:20];
+                       		//end
+             		//endcase
 		
         	end
 //	$display("%s, %b, %d, %d, %d,%d, ", opcode,instr_reg, rs1, rs2,rd, immediate);

@@ -153,7 +153,7 @@ always_ff @(posedge clk) begin
         	//if(cache_line == 64'h0000000000000000)
 		//	$finish;
 	//	else begin
-			
+			bus_reqtag <= 0;
 			missCacheLine <= missCacheLine | cache_line << (64 * cacheLineAddress[5:3]);
 			//Set1data[cacheLineAddress[14:6]] <= Set1data[cacheLineAddress[14:6]] | cache_line << (64* cacheLineAddress[5:3]);
 		       //data[cacheLineAddress[14:6]][31:0] <= cache_line;
@@ -163,11 +163,11 @@ always_ff @(posedge clk) begin
 	end
 	if (memoryState == memoryReading && next_memoryState == memoryIdle) begin
 		if (($random()<0)) begin
-			$display("using Set 1");
+		//	$display("using Set 1");
 			Set1data[pc[14:6]] <= missCacheLine;
 			Set1tag[pc[14:6]] <= pc[63:15];
 		end else begin
-			$display("using Set 2");
+		//	$display("using Set 2");
 			Set2data[pc[14:6]] <= missCacheLine;
 			Set2tag[pc[14:6]] <= pc[63:15];
 		end

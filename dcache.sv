@@ -127,31 +127,53 @@ always_comb begin
 					memwb_loadeddata = loadedblock;
 				end else if (ldst_size == 32) begin
 					if (ldst_unsign == 0) begin
-						sign64 = in_addr[2]?loadedblock[63:32]:loadedblock[31:0];
+						sign64 = in_addr[2]?$signed(loadedblock[63:32]):$signed(loadedblock[31:0]);
 						memwb_loadeddata = sign64;
 					end else begin
 						memwb_loadeddata = in_addr[2]?loadedblock[63:32]:loadedblock[31:0];
 					end	
 				end else if (ldst_size == 16) begin
-					case (in_addr[2:1])
-						0: memwb_loadeddata = loadedblock[15:0];
-						1: memwb_loadeddata = loadedblock[31:16];
-						2: memwb_loadeddata = loadedblock[47:32];
-						3: memwb_loadeddata = loadedblock[63:48];
-					endcase
+					if(ldst_unsign == 0) begin
+						case (in_addr[2:1])
+							0: memwb_loadeddata = $signed(loadedblock[15:0]);
+							1: memwb_loadeddata = $signed(loadedblock[31:16]);
+							2: memwb_loadeddata = $signed(loadedblock[47:32]);
+							3: memwb_loadeddata = $signed(loadedblock[63:48]);
+						endcase
+					end else begin
+						case (in_addr[2:1])
+							0: memwb_loadeddata = loadedblock[15:0];
+							1: memwb_loadeddata = loadedblock[31:16];
+							2: memwb_loadeddata = loadedblock[47:32];
+							3: memwb_loadeddata = loadedblock[63:48];
+						endcase
+					end
 				end else if (ldst_size == 8) begin
-					case (in_addr[2:0])
-						0: memwb_loadeddata = loadedblock[7:0];
-						1: memwb_loadeddata = loadedblock[15:8];
-						2: memwb_loadeddata = loadedblock[23:16];
-						3: memwb_loadeddata = loadedblock[31:24];
-						4: memwb_loadeddata = loadedblock[39:32];
-						5: memwb_loadeddata = loadedblock[47:40];
-						6: memwb_loadeddata = loadedblock[55:48];
-						7: memwb_loadeddata = loadedblock[63:56];
-					endcase
+					if(ldst_unsign == 0) begin
+						case (in_addr[2:0])
+							0: memwb_loadeddata = $signed(loadedblock[7:0]);
+							1: memwb_loadeddata = $signed(loadedblock[15:8]);
+							2: memwb_loadeddata = $signed(loadedblock[23:16]);
+							3: memwb_loadeddata = $signed(loadedblock[31:24]);
+							4: memwb_loadeddata = $signed(loadedblock[39:32]);
+							5: memwb_loadeddata = $signed(loadedblock[47:40]);
+							6: memwb_loadeddata = $signed(loadedblock[55:48]);
+							7: memwb_loadeddata = $signed(loadedblock[63:56]);
+						endcase
+					end else begin	
+						case (in_addr[2:0])
+							0: memwb_loadeddata = loadedblock[7:0];
+							1: memwb_loadeddata = loadedblock[15:8];
+							2: memwb_loadeddata = loadedblock[23:16];
+							3: memwb_loadeddata = loadedblock[31:24];
+							4: memwb_loadeddata = loadedblock[39:32];
+							5: memwb_loadeddata = loadedblock[47:40];
+							6: memwb_loadeddata = loadedblock[55:48];
+							7: memwb_loadeddata = loadedblock[63:56];
+						endcase
+					end
 				end
-				$display("LOADING DATA from address %x the data %x", in_addr,memwb_loadeddata );
+			//	$display("LOADING DATA from address %x the data %x", in_addr,memwb_loadeddata );
 				cache_hit = 1;
 				dataselect = 1;
 				MEMEX_stall = 0;
@@ -341,7 +363,7 @@ if (invalidate == 0) begin
         	//if(cache_line == 64'h0000000000000000)
 		//	$finish;
 	//	else begin
-			
+			bus_reqtag <= 0;			
 			missCacheLine <= missCacheLine | cache_line << (64 * cacheLineAddress[5:3]);
 			//Set1data[cacheLineAddress[14:6]] <= Set1data[cacheLineAddress[14:6]] | cache_line << (64* cacheLineAddress[5:3]);
 		       //data[cacheLineAddress[14:6]][31:0] <= cache_line;

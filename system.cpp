@@ -134,6 +134,7 @@ void System::tick(int clk) {
         top->bus_respcyc = 1;
         top->bus_resp = tx_queue.begin()->first;
         top->bus_resptag = tx_queue.begin()->second;
+//	cerr << std::hex << top->bus_resptag << endl;
         //cerr << "responding data " << top->bus_resp << " on tag " << std::hex << top->bus_resptag << endl;
     } else {
         top->bus_respcyc = 0;
@@ -146,7 +147,7 @@ void System::tick(int clk) {
          if (rx_count) {
             switch(cmd) {
             case MEMORY:
-                cout << "Here";
+               // cout << "Here";
                 *((uint64_t*)(&ram[xfer_addr + (8-rx_count)*8])) = top->bus_req;
                 break;
             case MMIO:

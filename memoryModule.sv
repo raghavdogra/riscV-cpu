@@ -111,7 +111,7 @@ i_dcache
 );
 logic mymemwb_ready;
 logic mymemwb_wbactive;
-
+/*
 always_ff @(posedge clk) begin
     if (reset) begin
     end
@@ -122,7 +122,7 @@ always_ff @(posedge clk) begin
         mymemwb_ready <= 1;
 end
 end
-
+*/
 always_ff @(posedge clk) begin
     if (reset) begin
     end
@@ -143,7 +143,7 @@ always_comb begin
 	if (MEMEX_stall == 1) begin
 		MEMWB_ready = 0;
 	end else begin
-		MEMWB_ready = mymemwb_ready;
+		MEMWB_ready = 1;
 	end
 
 end
