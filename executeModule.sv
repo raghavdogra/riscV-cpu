@@ -261,6 +261,8 @@ always_comb begin
 	ldst_size = 0;
 	ldst_unsign = 0;
 	pcint = IDEX_npc;
+	exmm_aluresult = 0;
+	target_pc = 0;
 	case(opcode)	
 	    	"ecall": begin
 		      	EXMEM_ecall = 1;
@@ -394,7 +396,7 @@ always_comb begin
 			EXMEM_wbactive = 0;
 				if(rs1 != rs2) begin
 					branch = 1;
-					target_pc = IDEX_npc + immediate;
+					target_pc = pcint + immediate;
 				end else begin
 					branch = 0;
 				end
