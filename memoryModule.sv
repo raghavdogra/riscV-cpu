@@ -19,7 +19,7 @@ module memoryMod
   input  [BUS_TAG_WIDTH-1:0] bus_resptag,
 
 
-
+    input  icachenotstall,
     input next_mem_active,	//current instruction uses a memory load/store or not
     input next_load,	//load if 1, store if 0, significant only when mem_active is set
     input [63:0] next_exmem_aluresult,
@@ -158,7 +158,7 @@ end
 always_ff @(posedge clk) begin
     if (reset) begin
     end
-    else if(EXMEM_ready == 0) begin
+    else if( icachenotstall == 0) begin
     	//MEMWB_ready = 0;
 		exmem_aluresult <= exmem_aluresult;
                 exmem_rd <= exmem_rd;

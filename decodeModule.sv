@@ -8,6 +8,7 @@ input IFID_ready,
 input EXID_stall,
 input EXIF_branch,
 input ecalldone,
+input icachenotstall,
 
 output [63:0] IDEX_npc,
 output [64:0] opcode,
@@ -77,7 +78,7 @@ always_ff @(posedge clk) begin
                         	IDEX_npc <= IDEX_npc;
               		end
 		end else 
-		if (IFID_ready == 1 && EXID_stall == 0) begin
+		if ( EXID_stall == 0 && icachenotstall == 1) begin
 			if(EXIF_branch == 1) begin
 				instr_reg <=  32'h00000013;
 			end else begin

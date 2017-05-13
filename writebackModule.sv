@@ -9,6 +9,7 @@ input dataselect,
 input MEMWB_wbactive,
 input MEMWB_ready,
 input MEMWB_ecall,
+input icachenotstall,
 
 input MEMWB_pend_write,
 input [3:0] MEMWB_size,
@@ -27,7 +28,7 @@ logic myecalldone;
 always_ff @(posedge clk) begin
 	if(reset) begin
 	end
-	else if(MEMWB_ready == 0) begin
+	else if( icachenotstall == 0) begin
 		myecalldone <= myecalldone;
 	end
 	else begin

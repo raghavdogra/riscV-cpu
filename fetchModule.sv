@@ -1,4 +1,6 @@
 `include "cache.sv"
+`define FETCHTERM
+
 module fetchMod
 #(
   BUS_DATA_WIDTH = 64,
@@ -88,10 +90,12 @@ end
 	end
 	else begin
 		if(data_ack == 1 && IDIF_stall == 0) begin
+`ifdef FETCHTERM
         		if(instr_reg == 8'h00) begin
 				i_execute.printRegister;
 				$finish;
 			end
+`endif
 			pc <= npc;
 			
 //			$display("PC,%x  npc %x",pc,npc);

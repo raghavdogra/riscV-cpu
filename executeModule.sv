@@ -21,6 +21,7 @@ module executeMod
     input MEMEX_wbactive,
     input WBEX_wbactive,
     input IDEX_ready,
+    input icachenotstall,
     output signed [63:0] exmm_aluresult,
     output signed [63:0] EXMEM_rs2,
     output [5:0] dest_reg,
@@ -103,7 +104,7 @@ end
 //end
 
 always_comb begin
-if (MEMEX_stall == 0) begin
+if (MEMEX_stall == 0 && icachenotstall == 1) begin
 	if (onecycledone == 1) begin
 			waitonecycle = 0;
 			EX_stall = 0;
@@ -197,7 +198,7 @@ end
         else begin
                 //  exmm_aluresult = immediate;
                 regfile.gpr[0] <= 0;
-                if(IDEX_ready == 1 && EXID_stall == 0) begin
+                if( EXID_stall == 0 && icachenotstall == 1) begin
                         if(branch == 0) begin
                                 opcode <= next_opcode;
                                 immediate <= next_immediate;
@@ -224,8 +225,8 @@ end
                                 immediate <=0;
                                 IDEX_npc <= next_IDEX_npc;
                         end
-	$display("IDEX_npc %x", IDEX_npc);
-	$display("opcode %s   ",opcode);
+	$display("		IDEX_npc %x", IDEX_npc);
+	$display("opcode				 %s   ",opcode);
 	$display("rs1  %d", rs1);
 	$display("rs2  %d", rs2);
 	$display("rd  %d",rd);
@@ -479,7 +480,7 @@ always_comb begin
 		"auipc": begin
 			temp= immediate;
 			temp = temp << 12;
-                        exmm_aluresult = temp;
+                        exmm_aluresult = temp + pcint;
                         end
  		"jal": begin 
 			branch = 1;

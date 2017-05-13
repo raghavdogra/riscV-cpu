@@ -129,6 +129,7 @@ decodeMod
 	.EXID_stall(EXID_stall),
 	.EXIF_branch(EXIF_branch),
 	.ecalldone(ecalldone),
+	.icachenotstall(IFID_ready),
 	
 //output
 	.IDEX_ready(IDEX_ready),
@@ -180,6 +181,7 @@ i_execute
     .MEMEX_stall(MEMEX_stall),
     .WBEX_wbactive(WBEX_wbactive),
     .MEMEX_wbactive(MEMEX_wbactive),
+    .icachenotstall(IFID_ready),
 //outputs
     .EXMEM_ecall(EXMEM_ecall),
     .EXMEM_ready(EXMEM_ready),
@@ -233,6 +235,7 @@ i_memory
     .next_ldst_size(ldst_size),
     .next_ldst_unsign(ldst_unsign),
     .next_EXMEM_ecall(EXMEM_ecall),
+    .icachenotstall(IFID_ready),
 
 //outputs
     .MEMEX_wbactive(MEMEX_wbactive),
@@ -283,6 +286,7 @@ i_writeback
 	.MEMWB_size(MEMWB_size),
 	.MEMWB_value(MEMWB_value),
 	.MEMWB_addr(MEMWB_addr),
+	.icachenotstall(IFID_ready),
 
 	.MEMWB_wbactive(MEMWB_wbactive),
 	.dataselect(dataselect),
