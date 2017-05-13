@@ -189,6 +189,8 @@ end
 end
      
 
+
+
    always_ff @(posedge clk) begin
         if (reset) begin
         end
@@ -203,15 +205,17 @@ end
                                 rs2 <= temprs2;
                                 IDEX_npc <= next_IDEX_npc;
                                 rd <= next_rd;
+`ifdef ALUPRINT
         			if (temprs2 == 64'h000000003fbffff5 && next_opcode == "sw") begin
+
                 			$display("BADDDDDDD EXMEM_rs2   ");
                 			$display("dest_reg   %x", dest_reg);
                 			$display("next_rs2reg   %x", next_rs2reg);
                 			$display("MEMEX_rd %x  MEMEX_rdval %x", MEMEX_rd, MEMEX_rdval);
                 			$display("WBEX_rd  %x    WBEX_rdval  %x ", WBEX_rd, WBEX_rdval);
                 			$display("prev opcode  %s   ",opcode);
-					
         			end
+`endif				
                         end else begin
                                 opcode <= "addi";
                                 rs1 <= 0;
@@ -220,6 +224,14 @@ end
                                 immediate <=0;
                                 IDEX_npc <= next_IDEX_npc;
                         end
+	$display("IDEX_npc %x", IDEX_npc);
+	$display("opcode %s   ",opcode);
+	$display("rs1  %d", rs1);
+	$display("rs2  %d", rs2);
+	$display("rd  %d",rd);
+	$display("EXMEM_aluresult  %d", exmm_aluresult);
+	$display("target pc  %x", target_pc);
+	$display("branch %d ", branch);
                 end else begin
                         opcode <= opcode;
                         rd <= rd;
@@ -317,7 +329,9 @@ always_comb begin
 			mem_active = 1;
 			EXMEM_wbactive = 0;
 			ldst_size = 32;
+`ifdef ALUPRINT
 			$display("SWWW setting exmemaluresult =%d %x   (rs1 + immediate ) (%x(hex) %d)",exmm_aluresult,exmm_aluresult, rs1, immediate);
+`endif				
 		      end
                 "sd": begin
 			exmm_aluresult = rs1 + immediate;
@@ -458,11 +472,14 @@ always_comb begin
 			exmm_aluresult = rs1 | immediate;
 			end
   		"lui": begin
-			exmm_aluresult = {immediate,3'h000};
+			temp = immediate;
+			temp = temp << 12;
+			exmm_aluresult = temp;
                         end
 		"auipc": begin
-			temp = {immediate,3'h000};
-                        exmm_aluresult = pcint + temp;
+			temp= immediate;
+			temp = temp << 12;
+                        exmm_aluresult = temp;
                         end
  		"jal": begin 
 			branch = 1;

@@ -164,7 +164,9 @@ always_comb begin
 			end else begin
 				MEMWB_pend_write = 1;
 				MEMWB_addr = in_addr;
+`ifdef DCACHEPRINT
 				$display("store instruction , in_addr = %x in_data = %x", in_addr,in_data);
+`endif
 				tempLD = (ALLONES << (in_addr[5:3] * 64)) & hitCacheLine;
 				loadedblock = tempLD >> (in_addr[5:3] * 64);
 		
@@ -203,7 +205,9 @@ always_comb begin
 						7: wbblock = {in_data[15:0],loadedblock[55:0]};
 					endcase
 				end
+`ifdef DCACHEPRINT
 					$display("STORING DATA wbblk = %x to addr %x \n", wbblock, in_addr);
+`endif
 
 				//making those 8 bytes to be zero
 				tempLD = (ALLONES << (in_addr[5:3] * 64));
@@ -329,7 +333,9 @@ if (invalidate == 0) begin
                         bus_reqcyc <= 1;
                         memoryState <= memoryRequest;
 			missCacheLine <= 0;
+`ifdef DCACHEPRINT
 			$display("CACHE MISSSS of address %x %x", in_addr, blockAddress);
+`endif
 	end
 	if (next_memoryState == memoryReading) begin
         	//if(cache_line == 64'h0000000000000000)
