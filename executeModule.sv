@@ -225,14 +225,14 @@ end
                                 immediate <=0;
                                 IDEX_npc <= next_IDEX_npc;
                         end
-	$display("		IDEX_npc %x", IDEX_npc);
-	$display("opcode				 %s   ",opcode);
-	$display("rs1  %d", rs1);
-	$display("rs2  %d", rs2);
-	$display("rd  %d",rd);
-	$display("EXMEM_aluresult  %d", exmm_aluresult);
-	$display("target pc  %x", target_pc);
-	$display("branch %d ", branch);
+		$display("ALU this instruction %x", IDEX_npc);
+		$display("ALU opcode %s   ",opcode);
+		$display("ALU actual val1  %d", rs1);
+		$display("ALU actual val2  %d", rs2);
+		$display("ALU rd_regno  %d",rd);
+		$display("ALU alu_result  %d", exmm_aluresult);
+		$display("target pc  %x", target_pc);
+		$display("ALU branch bool %d ", branch);
                 end else begin
                         opcode <= opcode;
                         rd <= rd;
